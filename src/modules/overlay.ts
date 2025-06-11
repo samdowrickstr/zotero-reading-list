@@ -113,7 +113,11 @@ function showReadingTasks() {
 	const message = lines.length
 		? lines.join("\n")
 		: getString("reading-tasks-none");
-	Services.prompt.alert(null, getString("reading-tasks-title"), message);
+	Services.prompt.alert(
+		window as mozIDOMWindowProxy,
+		getString("reading-tasks-title"),
+		message,
+	);
 }
 
 function promptAddReadingTask() {
@@ -127,7 +131,7 @@ function promptAddReadingTask() {
 
 	if (
 		!promptSvc.prompt(
-			null,
+			window as mozIDOMWindowProxy,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-module"),
 			moduleInput,
@@ -141,7 +145,7 @@ function promptAddReadingTask() {
 
 	if (
 		!promptSvc.prompt(
-			null,
+			window as mozIDOMWindowProxy,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-unit"),
 			unitInput,
@@ -154,7 +158,7 @@ function promptAddReadingTask() {
 	const chapterInput = { value: "" };
 
 	promptSvc.prompt(
-		null,
+		window as mozIDOMWindowProxy,
 		getString("add-reading-task-menu"),
 		getString("reading-task-prompt-chapter"),
 		chapterInput,
@@ -164,7 +168,7 @@ function promptAddReadingTask() {
 	const pagesInput = { value: "" };
 
 	promptSvc.prompt(
-		null,
+		window as mozIDOMWindowProxy,
 		getString("add-reading-task-menu"),
 		getString("reading-task-prompt-pages"),
 		pagesInput,
@@ -174,7 +178,7 @@ function promptAddReadingTask() {
 	const paragraphInput = { value: "" };
 
 	promptSvc.prompt(
-		null,
+		window as mozIDOMWindowProxy,
 		getString("add-reading-task-menu"),
 		getString("reading-task-prompt-paragraph"),
 		paragraphInput,
@@ -489,29 +493,29 @@ export default class ZoteroReadingList {
 			label: getString("menupopup-label"),
 			children: [
 				{
-					tag: "menuitem",
+					tag: "menuitem" as const,
 					label: getString("status-none"),
 					commandListener: () => void clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
-				...this.statusNames.map((status_name: string) => {
-					return {
-						tag: "menuitem",
+				...this.statusNames.map(
+					(status_name: string): MenuitemOptions => ({
+						tag: "menuitem" as const,
 						label: this.formatStatusName(status_name),
 						commandListener: () =>
 							setSelectedItemsReadStatus(status_name),
-					};
-				}),
+					}),
+				),
 				{
-					tag: "menuitem",
+					tag: "menuitem" as const,
 					label: getString("reading-tasks-menu"),
 					commandListener: () => showReadingTasks(),
-				},
+				} as MenuitemOptions,
 				{
-					tag: "menuitem",
+					tag: "menuitem" as const,
 					label: getString("add-reading-task-menu"),
 					commandListener: () => promptAddReadingTask(),
-				},
-			],
+				} as MenuitemOptions,
+			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
 			},
