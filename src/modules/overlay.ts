@@ -139,8 +139,7 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 		select(...args: any[]): boolean;
 	};
 
-	let moduleName = "";
-	const knownModules = getStoredModuleNames();
+	let moduleName = "";	const knownModules = getStoredModuleNames();
 	if (knownModules.length) {
 		const options = [...knownModules, getString("reading-task-new-module")];
 		const idx = { value: 0 };
