@@ -6,22 +6,34 @@
     id="reading-tasks-window"
     class="main-section"
     onload="Zotero.__addonInstance__.readingTasksView.onLoad(window)">
-    <html:h2>Reading Tasks</html:h2>
-    <html:table>
-        <html:thead>
-            <html:tr>
-                <html:th>Module</html:th>
-                <html:th>Unit</html:th>
-                <html:th>Chapter</html:th>
-                <html:th>Pages</html:th>
-                <html:th>Paragraph</html:th>
-                <html:th>Status</html:th>
-                <html:th>Done</html:th>
-                <html:th>Remove</html:th>
-            </html:tr>
-        </html:thead>
-        <html:tbody id="reading-tasks-table-body"></html:tbody>
-    </html:table>
-    <html:button id="reading-tasks-add" onclick="Zotero.__addonInstance__.readingTasksView.addTableRow(window)">Add</html:button>
-    <html:button id="reading-tasks-save" onclick="Zotero.__addonInstance__.readingTasksView.save(window)">Save</html:button>
+    <vbox>
+        <html:h2>Reading Tasks</html:h2>
+        <html:table>
+            <html:thead>
+                <html:tr>
+                    <html:th>Module</html:th>
+                    <html:th>Unit</html:th>
+                    <html:th>Chapter</html:th>
+                    <html:th>Pages</html:th>
+                    <html:th>Paragraph</html:th>
+                    <html:th>Status</html:th>
+                    <html:th>Done</html:th>
+                    <html:th>Remove</html:th>
+                </html:tr>
+            </html:thead>
+            <html:tbody id="reading-tasks-table-body"></html:tbody>
+        </html:table>
+        <hbox>
+            <html:button
+                id="reading-tasks-add"
+                onclick="Zotero.__addonInstance__.readingTasksView.addTableRow(window)"
+                >Add</html:button
+            >
+            <html:button
+                id="reading-tasks-save"
+                onclick="Zotero.__addonInstance__.readingTasksView.save(window)"
+                >Save</html:button
+            >
+        </hbox>
+    </vbox>
 </dialog>
