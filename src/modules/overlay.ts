@@ -113,6 +113,7 @@ function showReadingTasks() {
 	const message = lines.length
 		? lines.join("\n")
 		: getString("reading-tasks-none");
+  
 	Services.prompt.alert(
 		window as mozIDOMWindowProxy,
 		getString("reading-tasks-title"),
