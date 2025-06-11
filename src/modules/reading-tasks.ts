@@ -7,11 +7,34 @@ export interface ReadingTask {
 }
 
 const READING_TASKS_EXTRA_FIELD = "Reading_Tasks";
+export const READING_TASK_MODULES_PREF = "reading-task-modules";
+
+import { getPref, setPref } from "../utils/prefs";
 
 import {
 	getItemExtraProperty,
 	setItemExtraProperty,
 } from "../utils/extraField";
+
+export function getStoredModuleNames(): string[] {
+	const pref = getPref(READING_TASK_MODULES_PREF);
+	if (typeof pref == "string" && pref.length) {
+		return pref.split(";").filter((n) => n.length);
+	}
+	return [];
+}
+
+export function storeModuleName(name: string): void {
+	const trimmed = name.trim();
+	if (!trimmed) {
+		return;
+	}
+	const modules = getStoredModuleNames();
+	if (!modules.includes(trimmed)) {
+		modules.push(trimmed);
+		setPref(READING_TASK_MODULES_PREF, modules.join(";"));
+	}
+}
 
 export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 	const extra = getItemExtraProperty(item, READING_TASKS_EXTRA_FIELD);

@@ -20,6 +20,7 @@ reading-tasks-none = No reading tasks recorded
 add-reading-task-menu = Add Reading Task
 manage-reading-task-menu = Manage Reading Tasks
 reading-task-prompt-module = Module
+reading-task-new-module = New Module
 reading-task-prompt-unit = Unit
 reading-task-prompt-chapter = Chapter
 reading-task-prompt-pages = Pages

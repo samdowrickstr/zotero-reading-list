@@ -22,6 +22,9 @@ import {
 	setTaskStatus,
 	removeReadingTask,
 	computeItemStatus,
+	getStoredModuleNames,
+	storeModuleName,
+	READING_TASK_MODULES_PREF,
 } from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
@@ -136,27 +139,40 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 		select(...args: any[]): boolean;
 	};
 
-	let moduleName = "";
-	const rootCollections = Zotero.Collections.getByLibrary(
-		Zotero.Libraries.userLibraryID,
-		false,
-	);
-	if (rootCollections.length) {
-		const names = rootCollections.map((c) => c.name);
+	let moduleName = "";	const knownModules = getStoredModuleNames();
+	if (knownModules.length) {
+		const options = [...knownModules, getString("reading-task-new-module")];
 		const idx = { value: 0 };
 		if (
 			!promptSvc.select(
 				window as mozIDOMWindowProxy,
 				getString("add-reading-task-menu"),
 				getString("reading-task-prompt-module"),
-				names.length,
-				names,
+				options.length,
+				options,
 				idx,
 			)
 		) {
 			return;
 		}
-		moduleName = names[idx.value];
+		if (idx.value < knownModules.length) {
+			moduleName = knownModules[idx.value];
+		} else {
+			const moduleInput = { value: "" };
+			if (
+				!promptSvc.prompt(
+					window as mozIDOMWindowProxy,
+					getString("add-reading-task-menu"),
+					getString("reading-task-prompt-module"),
+					moduleInput,
+					null,
+					{},
+				)
+			) {
+				return;
+			}
+			moduleName = moduleInput.value.trim();
+		}
 	} else {
 		const moduleInput = { value: "" };
 		if (
@@ -173,7 +189,9 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 		}
 		moduleName = moduleInput.value.trim();
 	}
+	storeModuleName(moduleName);
 	const unitInput = { value: "" };
+
 	if (
 		!promptSvc.prompt(
 			window as mozIDOMWindowProxy,
@@ -480,6 +498,7 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_TO,
 			),
 		);
+		initialiseDefaultPref(READING_TASK_MODULES_PREF, "");
 		// for migrating from old label new items pref (true or false) to new format pref (disabled or choose read status to use)
 		// true -> automatically label as first read status
 		// false -> disabled
