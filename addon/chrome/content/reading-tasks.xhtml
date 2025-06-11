@@ -1,7 +1,11 @@
-<linkset>
-    <html:link rel="stylesheet" href="chrome://zotero-platform/content/zotero.css" />
-</linkset>
-<vbox id="reading-tasks-window" onload="Zotero.__addonInstance__.readingTasksView.onLoad(window)" class="main-section">
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css" type="text/css"?>
+<dialog
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    id="reading-tasks-window"
+    class="main-section"
+    onload="Zotero.__addonInstance__.readingTasksView.onLoad(window)">
     <html:h2>Reading Tasks</html:h2>
     <html:table>
         <html:thead>
@@ -20,4 +24,4 @@
     </html:table>
     <html:button id="reading-tasks-add" onclick="Zotero.__addonInstance__.readingTasksView.addTableRow(window)">Add</html:button>
     <html:button id="reading-tasks-save" onclick="Zotero.__addonInstance__.readingTasksView.save(window)">Save</html:button>
-</vbox>
+</dialog>
