@@ -18,13 +18,14 @@ reading-tasks-menu = Show Reading Tasks
 reading-tasks-title = Reading Tasks
 reading-tasks-none = No reading tasks recorded
 add-reading-task-menu = Add Reading Task
+manage-reading-task-menu = Manage Reading Tasks
 reading-task-prompt-module = Module
 reading-task-prompt-unit = Unit
 reading-task-prompt-chapter = Chapter
 reading-task-prompt-pages = Pages
 reading-task-prompt-paragraph = Paragraph
-toggle-reading-task-menu = Toggle Reading Task Done
+edit-reading-task-status = Set Reading Task Status
 remove-reading-task-menu = Remove Reading Task
 reading-task-prompt-index = Task number
 reading-task-prompt-type = Task Type
-
+reading-task-prompt-status = Task Status

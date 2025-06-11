@@ -8,8 +8,7 @@ An extension for Zotero that allows setting the read status of items.
 - custom read statuses are also supported
 - newly added items can be automatically labelled
 - an item's read status can be automatically updated when opening its attached PDF
-- record per-item reading tasks for modules and units with pages, chapters, or paragraphs; mark them done, remove them, and view progress
-
+- record per-item reading tasks for modules and units with pages, chapters, or paragraphs; manage them in one dialog with status options that update the overall read status
 
 ![windows dark theme overview](https://github.com/Dominic-DallOsto/zotero-reading-list/assets/26859884/e35ef424-02cd-4bec-8866-3e1d30c9aadf)
 

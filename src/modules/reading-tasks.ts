@@ -3,7 +3,7 @@ export interface ReadingTask {
 	unit: string;
 	type: "chapter" | "pages" | "paragraph";
 	value: string;
-	done?: boolean;
+	status: string;
 }
 
 const READING_TASKS_EXTRA_FIELD = "Reading_Tasks";
@@ -17,7 +17,19 @@ export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 	const extra = getItemExtraProperty(item, READING_TASKS_EXTRA_FIELD);
 	if (extra.length) {
 		try {
-			return JSON.parse(extra[0]) as ReadingTask[];
+			const tasks = JSON.parse(extra[0]) as any[];
+			return tasks.map((t) => {
+				const task = t as Partial<ReadingTask> & {
+					done?: boolean;
+				};
+				return {
+					module: task.module || "",
+					unit: task.unit || "",
+					type: task.type as "chapter" | "pages" | "paragraph",
+					value: task.value || "",
+					status: task.status ?? (task.done ? "Read" : "To Read"),
+				} as ReadingTask;
+			});
 		} catch {
 			return [];
 		}
@@ -40,10 +52,14 @@ export function addReadingTask(item: Zotero.Item, task: ReadingTask): void {
 	setReadingTasks(item, tasks);
 }
 
-export function toggleTaskDone(item: Zotero.Item, index: number): void {
+export function setTaskStatus(
+	item: Zotero.Item,
+	index: number,
+	status: string,
+): void {
 	const tasks = getReadingTasks(item);
 	if (tasks[index]) {
-		tasks[index].done = !tasks[index].done;
+		tasks[index].status = status;
 		setReadingTasks(item, tasks);
 	}
 }
@@ -63,8 +79,29 @@ export function tasksToString(tasks: ReadingTask[]): string {
 			const details = [t.module, t.unit, `${valueLabel}: ${t.value}`]
 				.filter(Boolean)
 				.join(" > ");
-			const status = t.done ? "✔" : "✘";
-			return `${idx + 1}. ${details} - ${status}`;
+			return `${idx + 1}. ${details} - ${t.status}`;
 		})
 		.join("\n");
+}
+
+export function aggregateStatusFromTasks(
+	tasks: ReadingTask[],
+	statusNames: string[],
+): string | undefined {
+	const indexes = tasks
+		.map((t) => statusNames.indexOf(t.status))
+		.filter((i) => i >= 0);
+	if (!indexes.length) {
+		return undefined;
+	}
+	const minIdx = Math.min(...indexes);
+	return statusNames[minIdx];
+}
+
+export function computeItemStatus(
+	item: Zotero.Item,
+	statusNames: string[],
+): string | undefined {
+	const tasks = getReadingTasks(item);
+	return aggregateStatusFromTasks(tasks, statusNames);
 }

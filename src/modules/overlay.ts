@@ -19,8 +19,9 @@ import {
 	addReadingTask,
 	getReadingTasks,
 	tasksToString,
-	toggleTaskDone,
+	setTaskStatus,
 	removeReadingTask,
+	computeItemStatus,
 } from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
@@ -122,7 +123,7 @@ function showReadingTasks() {
 	);
 }
 
-function promptAddReadingTask() {
+function promptAddReadingTask(this: ZoteroReadingList) {
 	const items = getSelectedItems();
 	if (!items.length) {
 		return;
@@ -173,15 +174,12 @@ function promptAddReadingTask() {
 		moduleName = moduleInput.value.trim();
 	}
 	const unitInput = { value: "" };
-
-
 	if (
 		!promptSvc.prompt(
 			window as mozIDOMWindowProxy,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-unit"),
 			unitInput,
-
 			null,
 			{},
 		)
@@ -220,30 +218,54 @@ function promptAddReadingTask() {
 		return;
 	}
 
+	const statusIdx = { value: 0 };
+	if (
+		!promptSvc.select(
+			window as mozIDOMWindowProxy,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-status"),
+			this.statusNames.length,
+			this.statusNames,
+			statusIdx,
+		)
+	) {
+		return;
+	}
+
 	const task = {
 		module: moduleName,
 		unit: unitInput.value.trim(),
 		type: typeKey,
 		value: valueInput.value.trim(),
+		status: this.statusNames[statusIdx.value],
 	} as import("./reading-tasks").ReadingTask;
 
 	for (const item of items) {
 		addReadingTask(item, task);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
 	}
 }
 
-function promptToggleReadingTaskDone() {
+function promptSetReadingTaskStatus(this: ZoteroReadingList) {
 	const items = getSelectedItems();
 	if (!items.length) {
 		return;
 	}
-	const promptSvc: { prompt(...args: any[]): boolean } =
-		Services.prompt as unknown as { prompt(...args: any[]): boolean };
+	const promptSvc: {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	} = Services.prompt as unknown as {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	};
 	const indexInput = { value: "" };
 	if (
 		!promptSvc.prompt(
 			window as mozIDOMWindowProxy,
-			getString("toggle-reading-task-menu"),
+			getString("edit-reading-task-status"),
 			getString("reading-task-prompt-index"),
 			indexInput,
 			null,
@@ -256,12 +278,29 @@ function promptToggleReadingTaskDone() {
 	if (isNaN(idx)) {
 		return;
 	}
+	const statusIdx = { value: 0 };
+	if (
+		!promptSvc.select(
+			window as mozIDOMWindowProxy,
+			getString("edit-reading-task-status"),
+			getString("reading-task-prompt-status"),
+			this.statusNames.length,
+			this.statusNames,
+			statusIdx,
+		)
+	) {
+		return;
+	}
 	for (const item of items) {
-		toggleTaskDone(item, idx);
+		setTaskStatus(item, idx, this.statusNames[statusIdx.value]);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
 	}
 }
 
-function promptRemoveReadingTask() {
+function promptRemoveReadingTask(this: ZoteroReadingList) {
 	const items = getSelectedItems();
 	if (!items.length) {
 		return;
@@ -287,6 +326,68 @@ function promptRemoveReadingTask() {
 	}
 	for (const item of items) {
 		removeReadingTask(item, idx);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
+	}
+}
+
+function manageReadingTasks(this: ZoteroReadingList) {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: {
+		select(...args: any[]): boolean;
+		prompt(...args: any[]): boolean;
+	} = Services.prompt as unknown as {
+		select(...args: any[]): boolean;
+		prompt(...args: any[]): boolean;
+	};
+	const item = items[0];
+	let done = false;
+	while (!done) {
+		const tasks = getReadingTasks(item);
+		const message = tasks.length
+			? tasksToString(tasks)
+			: getString("reading-tasks-none");
+		const actions = [
+			getString("add-reading-task-menu"),
+			getString("edit-reading-task-status"),
+			getString("remove-reading-task-menu"),
+			getString("status-none"),
+		];
+		const actIdx = { value: 0 };
+		if (
+			!promptSvc.select(
+				window as mozIDOMWindowProxy,
+				item.getField("title"),
+				message,
+				actions.length,
+				actions,
+				actIdx,
+			)
+		) {
+			break;
+		}
+		switch (actIdx.value) {
+			case 0: {
+				promptAddReadingTask.call(this);
+				break;
+			}
+			case 1: {
+				promptSetReadingTaskStatus.call(this);
+				break;
+			}
+			case 2: {
+				promptRemoveReadingTask.call(this);
+				break;
+			}
+			default:
+				done = true;
+				break;
+		}
 	}
 }
 
@@ -603,18 +704,8 @@ export default class ZoteroReadingList {
 				} as MenuitemOptions,
 				{
 					tag: "menuitem" as const,
-					label: getString("add-reading-task-menu"),
-					commandListener: () => promptAddReadingTask(),
-				} as MenuitemOptions,
-				{
-					tag: "menuitem" as const,
-					label: getString("toggle-reading-task-menu"),
-					commandListener: () => promptToggleReadingTaskDone(),
-				} as MenuitemOptions,
-				{
-					tag: "menuitem" as const,
-					label: getString("remove-reading-task-menu"),
-					commandListener: () => promptRemoveReadingTask(),
+					label: getString("manage-reading-task-menu"),
+					commandListener: () => manageReadingTasks.call(this),
 				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
