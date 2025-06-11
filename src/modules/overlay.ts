@@ -15,6 +15,17 @@ import {
 	clearItemExtraProperty,
 	removeFieldValueFromExtraData,
 } from "../utils/extraField";
+import {
+	addReadingTask,
+	getReadingTasks,
+	tasksToString,
+	setTaskStatus,
+	removeReadingTask,
+	computeItemStatus,
+	getStoredModuleNames,
+	storeModuleName,
+	READING_TASK_MODULES_PREF,
+} from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
@@ -90,6 +101,313 @@ function clearSelectedItemsReadStatus() {
  */
 function getSelectedItems() {
 	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
+}
+
+function showReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const lines: string[] = [];
+	for (const item of items) {
+		const tasks = getReadingTasks(item);
+		if (tasks.length) {
+			lines.push(item.getField("title"));
+			lines.push(tasksToString(tasks));
+		}
+	}
+	const message = lines.length
+		? lines.join("\n")
+		: getString("reading-tasks-none");
+	Services.prompt.alert(
+		window as mozIDOMWindowProxy,
+		getString("reading-tasks-title"),
+		message,
+	);
+}
+
+function promptAddReadingTask(this: ZoteroReadingList) {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	} = Services.prompt as unknown as {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	};
+
+	let moduleName = "";
+	const knownModules = getStoredModuleNames();
+	if (knownModules.length) {
+		const options = [...knownModules, getString("reading-task-new-module")];
+		const idx = { value: 0 };
+		if (
+			!promptSvc.select(
+				window as mozIDOMWindowProxy,
+				getString("add-reading-task-menu"),
+				getString("reading-task-prompt-module"),
+				options.length,
+				options,
+				idx,
+			)
+		) {
+			return;
+		}
+		if (idx.value < knownModules.length) {
+			moduleName = knownModules[idx.value];
+		} else {
+			const moduleInput = { value: "" };
+			if (
+				!promptSvc.prompt(
+					window as mozIDOMWindowProxy,
+					getString("add-reading-task-menu"),
+					getString("reading-task-prompt-module"),
+					moduleInput,
+					null,
+					{},
+				)
+			) {
+				return;
+			}
+			moduleName = moduleInput.value.trim();
+		}
+	} else {
+		const moduleInput = { value: "" };
+		if (
+			!promptSvc.prompt(
+				window as mozIDOMWindowProxy,
+				getString("add-reading-task-menu"),
+				getString("reading-task-prompt-module"),
+				moduleInput,
+				null,
+				{},
+			)
+		) {
+			return;
+		}
+		moduleName = moduleInput.value.trim();
+	}
+	storeModuleName(moduleName);
+	const unitInput = { value: "" };
+
+	if (
+		!promptSvc.prompt(
+			window as mozIDOMWindowProxy,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-unit"),
+			unitInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+	const types = ["Chapter", "Pages", "Paragraph"];
+	const typeIdx = { value: 0 };
+	if (
+		!promptSvc.select(
+			window as mozIDOMWindowProxy,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-type"),
+			types.length,
+			types,
+			typeIdx,
+		)
+	) {
+		return;
+	}
+	const typeKey = types[typeIdx.value].toLowerCase() as
+		| "chapter"
+		| "pages"
+		| "paragraph";
+	const valueInput = { value: "" };
+	if (
+		!promptSvc.prompt(
+			window as mozIDOMWindowProxy,
+			getString("add-reading-task-menu"),
+			getString(`reading-task-prompt-${typeKey}`),
+			valueInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+
+	const statusIdx = { value: 0 };
+	if (
+		!promptSvc.select(
+			window as mozIDOMWindowProxy,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-status"),
+			this.statusNames.length,
+			this.statusNames,
+			statusIdx,
+		)
+	) {
+		return;
+	}
+
+	const task = {
+		module: moduleName,
+		unit: unitInput.value.trim(),
+		type: typeKey,
+		value: valueInput.value.trim(),
+		status: this.statusNames[statusIdx.value],
+	} as import("./reading-tasks").ReadingTask;
+
+	for (const item of items) {
+		addReadingTask(item, task);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
+	}
+}
+
+function promptSetReadingTaskStatus(this: ZoteroReadingList) {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	} = Services.prompt as unknown as {
+		prompt(...args: any[]): boolean;
+		select(...args: any[]): boolean;
+	};
+	const indexInput = { value: "" };
+	if (
+		!promptSvc.prompt(
+			window as mozIDOMWindowProxy,
+			getString("edit-reading-task-status"),
+			getString("reading-task-prompt-index"),
+			indexInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+	const idx = parseInt(indexInput.value) - 1;
+	if (isNaN(idx)) {
+		return;
+	}
+	const statusIdx = { value: 0 };
+	if (
+		!promptSvc.select(
+			window as mozIDOMWindowProxy,
+			getString("edit-reading-task-status"),
+			getString("reading-task-prompt-status"),
+			this.statusNames.length,
+			this.statusNames,
+			statusIdx,
+		)
+	) {
+		return;
+	}
+	for (const item of items) {
+		setTaskStatus(item, idx, this.statusNames[statusIdx.value]);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
+	}
+}
+
+function promptRemoveReadingTask(this: ZoteroReadingList) {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: { prompt(...args: any[]): boolean } =
+		Services.prompt as unknown as { prompt(...args: any[]): boolean };
+	const indexInput = { value: "" };
+	if (
+		!promptSvc.prompt(
+			window as mozIDOMWindowProxy,
+			getString("remove-reading-task-menu"),
+			getString("reading-task-prompt-index"),
+			indexInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+	const idx = parseInt(indexInput.value) - 1;
+	if (isNaN(idx)) {
+		return;
+	}
+	for (const item of items) {
+		removeReadingTask(item, idx);
+		const newStatus = computeItemStatus(item, this.statusNames);
+		if (newStatus) {
+			setItemReadStatus(item, newStatus);
+		}
+	}
+}
+
+function manageReadingTasks(this: ZoteroReadingList) {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: {
+		select(...args: any[]): boolean;
+		prompt(...args: any[]): boolean;
+	} = Services.prompt as unknown as {
+		select(...args: any[]): boolean;
+		prompt(...args: any[]): boolean;
+	};
+	const item = items[0];
+	let done = false;
+	while (!done) {
+		const tasks = getReadingTasks(item);
+		const message = tasks.length
+			? tasksToString(tasks)
+			: getString("reading-tasks-none");
+		const actions = [
+			getString("add-reading-task-menu"),
+			getString("edit-reading-task-status"),
+			getString("remove-reading-task-menu"),
+			getString("status-none"),
+		];
+		const actIdx = { value: 0 };
+		if (
+			!promptSvc.select(
+				window as mozIDOMWindowProxy,
+				item.getField("title"),
+				message,
+				actions.length,
+				actions,
+				actIdx,
+			)
+		) {
+			break;
+		}
+		switch (actIdx.value) {
+			case 0: {
+				promptAddReadingTask.call(this);
+				break;
+			}
+			case 1: {
+				promptSetReadingTaskStatus.call(this);
+				break;
+			}
+			case 2: {
+				promptRemoveReadingTask.call(this);
+				break;
+			}
+			default:
+				done = true;
+				break;
+		}
+	}
 }
 
 export const FORBIDDEN_PREF_STRING_CHARACTERS = new Set(":;|");
@@ -181,6 +499,7 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_TO,
 			),
 		);
+		initialiseDefaultPref(READING_TASK_MODULES_PREF, "");
 		// for migrating from old label new items pref (true or false) to new format pref (disabled or choose read status to use)
 		// true -> automatically label as first read status
 		// false -> disabled
@@ -386,21 +705,29 @@ export default class ZoteroReadingList {
 			label: getString("menupopup-label"),
 			children: [
 				{
-					tag: "menuitem",
+					tag: "menuitem" as const,
 					label: getString("status-none"),
-					commandListener: (event) =>
-						void clearSelectedItemsReadStatus(),
+					commandListener: () => void clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
-			].concat(
-				this.statusNames.map((status_name: string) => {
-					return {
-						tag: "menuitem",
+				...this.statusNames.map(
+					(status_name: string): MenuitemOptions => ({
+						tag: "menuitem" as const,
 						label: this.formatStatusName(status_name),
-						commandListener: (event) =>
+						commandListener: () =>
 							setSelectedItemsReadStatus(status_name),
-					};
-				}),
-			),
+					}),
+				),
+				{
+					tag: "menuitem" as const,
+					label: getString("reading-tasks-menu"),
+					commandListener: () => showReadingTasks(),
+				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("manage-reading-task-menu"),
+					commandListener: () => manageReadingTasks.call(this),
+				} as MenuitemOptions,
+			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
 			},
