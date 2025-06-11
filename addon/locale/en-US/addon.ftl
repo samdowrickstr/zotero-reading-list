@@ -27,3 +27,4 @@ toggle-reading-task-menu = Toggle Reading Task Done
 remove-reading-task-menu = Remove Reading Task
 reading-task-prompt-index = Task number
 reading-task-prompt-type = Task Type
+

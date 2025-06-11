@@ -174,12 +174,14 @@ function promptAddReadingTask() {
 	}
 	const unitInput = { value: "" };
 
+
 	if (
 		!promptSvc.prompt(
 			window as mozIDOMWindowProxy,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-unit"),
 			unitInput,
+
 			null,
 			{},
 		)

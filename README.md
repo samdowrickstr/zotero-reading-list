@@ -10,6 +10,7 @@ An extension for Zotero that allows setting the read status of items.
 - an item's read status can be automatically updated when opening its attached PDF
 - record per-item reading tasks for modules and units with pages, chapters, or paragraphs; mark them done, remove them, and view progress
 
+
 ![windows dark theme overview](https://github.com/Dominic-DallOsto/zotero-reading-list/assets/26859884/e35ef424-02cd-4bec-8866-3e1d30c9aadf)
 
 Change an item's status by right clicking or by using the shortcut keys Alt+1 to Alt+5 (supports multiple items at once).
