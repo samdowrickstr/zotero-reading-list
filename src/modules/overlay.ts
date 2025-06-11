@@ -103,6 +103,50 @@ function getSelectedItems() {
 	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
 }
 
+function promptSelect(
+	promptSvc: {
+		prompt(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
+	},
+	title: string,
+	message: string,
+	options: string[],
+	out: { value: number },
+): boolean {
+	if (typeof promptSvc.select === "function") {
+		return promptSvc.select(
+			window as mozIDOMWindowProxy,
+			title,
+			message,
+			options.length,
+			options,
+			out,
+		);
+	}
+	const input = { value: String(out.value + 1) };
+	const promptMessage = `${message}\n${options
+		.map((o, i) => `${i + 1}. ${o}`)
+		.join("\n")}`;
+	if (
+		!promptSvc.prompt(
+			window as mozIDOMWindowProxy,
+			title,
+			promptMessage,
+			input,
+			null,
+			{},
+		)
+	) {
+		return false;
+	}
+	const idx = parseInt(input.value, 10);
+	if (isNaN(idx) || idx < 1 || idx > options.length) {
+		return false;
+	}
+	out.value = idx - 1;
+	return true;
+}
+
 function showReadingTasks() {
 	const items = getSelectedItems();
 	if (!items.length) {
@@ -133,22 +177,22 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 	}
 	const promptSvc: {
 		prompt(...args: any[]): boolean;
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 	} = Services.prompt as unknown as {
 		prompt(...args: any[]): boolean;
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 	};
 
-	let moduleName = "";	const knownModules = getStoredModuleNames();
+	let moduleName = "";
+	const knownModules = getStoredModuleNames();
 	if (knownModules.length) {
 		const options = [...knownModules, getString("reading-task-new-module")];
 		const idx = { value: 0 };
 		if (
-			!promptSvc.select(
-				window as mozIDOMWindowProxy,
+			!promptSelect(
+				promptSvc,
 				getString("add-reading-task-menu"),
 				getString("reading-task-prompt-module"),
-				options.length,
 				options,
 				idx,
 			)
@@ -207,11 +251,10 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 	const types = ["Chapter", "Pages", "Paragraph"];
 	const typeIdx = { value: 0 };
 	if (
-		!promptSvc.select(
-			window as mozIDOMWindowProxy,
+		!promptSelect(
+			promptSvc,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-type"),
-			types.length,
 			types,
 			typeIdx,
 		)
@@ -238,11 +281,10 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 
 	const statusIdx = { value: 0 };
 	if (
-		!promptSvc.select(
-			window as mozIDOMWindowProxy,
+		!promptSelect(
+			promptSvc,
 			getString("add-reading-task-menu"),
 			getString("reading-task-prompt-status"),
-			this.statusNames.length,
 			this.statusNames,
 			statusIdx,
 		)
@@ -274,10 +316,10 @@ function promptSetReadingTaskStatus(this: ZoteroReadingList) {
 	}
 	const promptSvc: {
 		prompt(...args: any[]): boolean;
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 	} = Services.prompt as unknown as {
 		prompt(...args: any[]): boolean;
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 	};
 	const indexInput = { value: "" };
 	if (
@@ -298,11 +340,10 @@ function promptSetReadingTaskStatus(this: ZoteroReadingList) {
 	}
 	const statusIdx = { value: 0 };
 	if (
-		!promptSvc.select(
-			window as mozIDOMWindowProxy,
+		!promptSelect(
+			promptSvc,
 			getString("edit-reading-task-status"),
 			getString("reading-task-prompt-status"),
-			this.statusNames.length,
 			this.statusNames,
 			statusIdx,
 		)
@@ -357,10 +398,10 @@ function manageReadingTasks(this: ZoteroReadingList) {
 		return;
 	}
 	const promptSvc: {
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 		prompt(...args: any[]): boolean;
 	} = Services.prompt as unknown as {
-		select(...args: any[]): boolean;
+		select?: (...args: any[]) => boolean;
 		prompt(...args: any[]): boolean;
 	};
 	const item = items[0];
@@ -378,11 +419,10 @@ function manageReadingTasks(this: ZoteroReadingList) {
 		];
 		const actIdx = { value: 0 };
 		if (
-			!promptSvc.select(
-				window as mozIDOMWindowProxy,
+			!promptSelect(
+				promptSvc,
 				item.getField("title"),
 				message,
-				actions.length,
 				actions,
 				actIdx,
 			)
