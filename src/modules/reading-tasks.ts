@@ -35,6 +35,12 @@ export function setReadingTasks(item: Zotero.Item, tasks: ReadingTask[]): void {
 	void item.saveTx();
 }
 
+export function addReadingTask(item: Zotero.Item, task: ReadingTask): void {
+	const tasks = getReadingTasks(item);
+	tasks.push(task);
+	setReadingTasks(item, tasks);
+}
+
 export function markTaskAsDone(item: Zotero.Item, index: number): void {
 	const tasks = getReadingTasks(item);
 	if (tasks[index]) {
