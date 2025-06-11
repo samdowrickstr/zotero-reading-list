@@ -15,6 +15,11 @@ import {
 	clearItemExtraProperty,
 	removeFieldValueFromExtraData,
 } from "../utils/extraField";
+import {
+	addReadingTask,
+	getReadingTasks,
+	tasksToString,
+} from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
@@ -90,6 +95,104 @@ function clearSelectedItemsReadStatus() {
  */
 function getSelectedItems() {
 	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
+}
+
+function showReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const lines: string[] = [];
+	for (const item of items) {
+		const tasks = getReadingTasks(item);
+		if (tasks.length) {
+			lines.push(item.getField("title"));
+			lines.push(tasksToString(tasks));
+		}
+	}
+	const message = lines.length
+		? lines.join("\n")
+		: getString("reading-tasks-none");
+	Services.prompt.alert(null, getString("reading-tasks-title"), message);
+}
+
+function promptAddReadingTask() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	const promptSvc: { prompt(...args: any[]): boolean } =
+		Services.prompt as unknown as { prompt(...args: any[]): boolean };
+	const moduleInput = { value: "" };
+
+	if (
+		!promptSvc.prompt(
+			null,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-module"),
+			moduleInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+	const unitInput = { value: "" };
+
+	if (
+		!promptSvc.prompt(
+			null,
+			getString("add-reading-task-menu"),
+			getString("reading-task-prompt-unit"),
+			unitInput,
+			null,
+			{},
+		)
+	) {
+		return;
+	}
+	const chapterInput = { value: "" };
+
+	promptSvc.prompt(
+		null,
+		getString("add-reading-task-menu"),
+		getString("reading-task-prompt-chapter"),
+		chapterInput,
+		null,
+		{},
+	);
+	const pagesInput = { value: "" };
+
+	promptSvc.prompt(
+		null,
+		getString("add-reading-task-menu"),
+		getString("reading-task-prompt-pages"),
+		pagesInput,
+		null,
+		{},
+	);
+	const paragraphInput = { value: "" };
+
+	promptSvc.prompt(
+		null,
+		getString("add-reading-task-menu"),
+		getString("reading-task-prompt-paragraph"),
+		paragraphInput,
+		null,
+		{},
+	);
+
+	const task = {
+		module: moduleInput.value.trim(),
+		unit: unitInput.value.trim(),
+		chapter: chapterInput.value.trim() || undefined,
+		pages: pagesInput.value.trim() || undefined,
+		paragraph: paragraphInput.value.trim() || undefined,
+	} as import("./reading-tasks").ReadingTask;
+
+	for (const item of items) {
+		addReadingTask(item, task);
+	}
 }
 
 export const FORBIDDEN_PREF_STRING_CHARACTERS = new Set(":;|");
@@ -388,19 +491,27 @@ export default class ZoteroReadingList {
 				{
 					tag: "menuitem",
 					label: getString("status-none"),
-					commandListener: (event) =>
-						void clearSelectedItemsReadStatus(),
+					commandListener: () => void clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
-			].concat(
-				this.statusNames.map((status_name: string) => {
+				...this.statusNames.map((status_name: string) => {
 					return {
 						tag: "menuitem",
 						label: this.formatStatusName(status_name),
-						commandListener: (event) =>
+						commandListener: () =>
 							setSelectedItemsReadStatus(status_name),
 					};
 				}),
-			),
+				{
+					tag: "menuitem",
+					label: getString("reading-tasks-menu"),
+					commandListener: () => showReadingTasks(),
+				},
+				{
+					tag: "menuitem",
+					label: getString("add-reading-task-menu"),
+					commandListener: () => promptAddReadingTask(),
+				},
+			],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
 			},
