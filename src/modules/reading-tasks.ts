@@ -59,4 +59,4 @@ export function tasksToString(tasks: ReadingTask[]): string {
 			return `${idx + 1}. ${details} - ${status}`;
 		})
 		.join("\n");
-
+}
