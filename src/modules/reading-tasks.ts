@@ -1,9 +1,8 @@
 export interface ReadingTask {
 	module: string;
 	unit: string;
-	chapter?: string;
-	pages?: string;
-	paragraph?: string;
+	type: "chapter" | "pages" | "paragraph";
+	value: string;
 	done?: boolean;
 }
 
@@ -41,10 +40,18 @@ export function addReadingTask(item: Zotero.Item, task: ReadingTask): void {
 	setReadingTasks(item, tasks);
 }
 
-export function markTaskAsDone(item: Zotero.Item, index: number): void {
+export function toggleTaskDone(item: Zotero.Item, index: number): void {
 	const tasks = getReadingTasks(item);
 	if (tasks[index]) {
-		tasks[index].done = true;
+		tasks[index].done = !tasks[index].done;
+		setReadingTasks(item, tasks);
+	}
+}
+
+export function removeReadingTask(item: Zotero.Item, index: number): void {
+	const tasks = getReadingTasks(item);
+	if (tasks[index]) {
+		tasks.splice(index, 1);
 		setReadingTasks(item, tasks);
 	}
 }
@@ -52,7 +59,8 @@ export function markTaskAsDone(item: Zotero.Item, index: number): void {
 export function tasksToString(tasks: ReadingTask[]): string {
 	return tasks
 		.map((t, idx) => {
-			const details = [t.module, t.unit, t.chapter, t.pages, t.paragraph]
+			const valueLabel = t.type.charAt(0).toUpperCase() + t.type.slice(1);
+			const details = [t.module, t.unit, `${valueLabel}: ${t.value}`]
 				.filter(Boolean)
 				.join(" > ");
 			const status = t.done ? "✔" : "✘";
