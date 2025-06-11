@@ -23,3 +23,4 @@ reading-task-prompt-unit = Unit
 reading-task-prompt-chapter = Chapter
 reading-task-prompt-pages = Pages
 reading-task-prompt-paragraph = Paragraph
+manage-reading-tasks-menu = Manage Reading Tasks

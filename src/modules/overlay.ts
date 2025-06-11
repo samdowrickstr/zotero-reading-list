@@ -22,8 +22,8 @@ import {
 } from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
-const READ_STATUS_EXTRA_FIELD = "Read_Status";
-const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
+export const READ_STATUS_EXTRA_FIELD = "Read_Status";
+export const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
 export const DEFAULT_STATUS_NAMES = [
 	"New",
@@ -61,7 +61,7 @@ function getItemReadStatus(item: Zotero.Item) {
 	return statusField.length == 1 ? statusField[0] : "";
 }
 
-function setItemReadStatus(item: Zotero.Item, statusName: string) {
+export function setItemReadStatus(item: Zotero.Item, statusName: string) {
 	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
 	setItemExtraProperty(
 		item,
@@ -90,6 +90,24 @@ function clearSelectedItemsReadStatus() {
 	}
 }
 
+export function updateItemStatusFromTasks(item: Zotero.Item) {
+	const tasks = getReadingTasks(item);
+	if (!tasks.length) {
+		return;
+	}
+	const [statusNames] = prefStringToList(
+		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+	);
+	let idx = 0;
+	for (const t of tasks) {
+		const sIdx = statusNames.indexOf(t.status);
+		if (sIdx > idx) {
+			idx = sIdx;
+		}
+	}
+	setItemReadStatus(item, statusNames[idx]);
+}
+
 /**
  * Return selected regular items
  */
@@ -113,11 +131,24 @@ function showReadingTasks() {
 	const message = lines.length
 		? lines.join("\n")
 		: getString("reading-tasks-none");
-  
+
 	Services.prompt.alert(
 		window as mozIDOMWindowProxy,
 		getString("reading-tasks-title"),
 		message,
+	);
+}
+
+function openManageReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	window.openDialog(
+		rootURI + "chrome/content/reading-tasks.xhtml",
+		"readingTasks",
+		"chrome,modal,resizable",
+		{ itemID: items[0].id },
 	);
 }
 
@@ -193,10 +224,15 @@ function promptAddReadingTask() {
 		chapter: chapterInput.value.trim() || undefined,
 		pages: pagesInput.value.trim() || undefined,
 		paragraph: paragraphInput.value.trim() || undefined,
+		status:
+			prefStringToList(
+				getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+			)[0][1] || "To Read",
 	} as import("./reading-tasks").ReadingTask;
 
 	for (const item of items) {
 		addReadingTask(item, task);
+		updateItemStatusFromTasks(item);
 	}
 }
 
@@ -515,6 +551,11 @@ export default class ZoteroReadingList {
 					tag: "menuitem" as const,
 					label: getString("add-reading-task-menu"),
 					commandListener: () => promptAddReadingTask(),
+				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("manage-reading-tasks-menu"),
+					commandListener: () => openManageReadingTasks(),
 				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
