@@ -22,4 +22,3 @@ reading-task-prompt-module = Module
 reading-task-prompt-unit = Unit
 reading-task-prompt-chapter = Chapter
 reading-task-prompt-pages = Pages
-reading-task-prompt-paragraph = Paragraph
