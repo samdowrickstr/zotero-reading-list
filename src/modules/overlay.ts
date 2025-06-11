@@ -499,6 +499,7 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_TO,
 			),
 		);
+		initialiseDefaultPref(READING_TASK_MODULES_PREF, "");
 		// for migrating from old label new items pref (true or false) to new format pref (disabled or choose read status to use)
 		// true -> automatically label as first read status
 		// false -> disabled
