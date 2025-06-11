@@ -14,6 +14,3 @@ invalid-status-names-title = Custom Reading Statuses Contains Invalid Characters
 invalid-status-names-description = Custom reading statuses and icons cannot contain the characters : ; or |. Please remove these characters.
 
 autolabelnewitems-disabled = Disabled
-reading-tasks-menu = Show Reading Tasks
-reading-tasks-title = Reading Tasks
-reading-tasks-none = No reading tasks recorded
