@@ -174,7 +174,6 @@ function promptAddReadingTask(this: ZoteroReadingList) {
 		moduleName = moduleInput.value.trim();
 	}
 	const unitInput = { value: "" };
-
 	if (
 		!promptSvc.prompt(
 			window as mozIDOMWindowProxy,
