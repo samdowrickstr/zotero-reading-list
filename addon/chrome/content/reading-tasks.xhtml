@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
-<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css" type="text/css"?>
+<linkset>
+    <html:link rel="stylesheet" href="chrome://zotero-platform/content/zotero.css" />
+    <html:link rel="localization" href="__addonRef__-addon.ftl" />
+</linkset>
 <dialog
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
     id="reading-tasks-window"
     class="main-section"
+    style="width:700px;height:400px;"
     onload="Zotero.__addonInstance__.readingTasksView.onLoad(window)">
     <vbox>
         <html:h2>Reading Tasks</html:h2>
