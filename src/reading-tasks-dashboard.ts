@@ -42,6 +42,8 @@ function createRow(doc: Document, it: ItemTask) {
 	for (const val of cells) {
 		const td = doc.createElement("td");
 		td.textContent = val;
+		td.style.padding = "4px";
+		td.style.textAlign = "center";
 		row.appendChild(td);
 	}
 	return row;
@@ -53,17 +55,29 @@ export function open() {
 		tag: "vbox",
 		children: [
 			{
+				tag: "h2",
+				namespace: "html",
+				properties: {
+					innerHTML: getString("reading-tasks-dashboard-title"),
+					style: "text-align:center;margin:0 0 8px 0;",
+				},
+			},
+			{
 				tag: "input",
 				namespace: "html",
 				attributes: {
 					id: FILTER_ID,
 					placeholder: getString("filter-placeholder"),
 					type: "search",
+					style: "display:block;margin:0 auto 8px auto;width:95%;",
 				},
 			},
 			{
 				tag: "table",
 				namespace: "html",
+				attributes: {
+					style: "width:100%;border-collapse:collapse;text-align:center;",
+				},
 				children: [
 					{
 						tag: "thead",
@@ -73,35 +87,59 @@ export function open() {
 								children: [
 									{
 										tag: "th",
-										properties: { innerHTML: "Title" },
+										properties: {
+											innerHTML: "Title",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Module" },
+										properties: {
+											innerHTML: "Module",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Unit" },
+										properties: {
+											innerHTML: "Unit",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Chapter" },
+										properties: {
+											innerHTML: "Chapter",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Pages" },
+										properties: {
+											innerHTML: "Pages",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Paragraph" },
+										properties: {
+											innerHTML: "Paragraph",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Type" },
+										properties: {
+											innerHTML: "Type",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Status" },
+										properties: {
+											innerHTML: "Status",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 								],
 							},

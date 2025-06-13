@@ -91,6 +91,8 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const typeGroup = dialog.createElement(doc, "div", {
 		namespace: "html",
 	});
+	typeGroup.style.display = "flex";
+	typeGroup.style.justifyContent = "center";
 	const typeNames = [
 		getString("reading-task-type-required"),
 		getString("reading-task-type-additional"),
@@ -119,6 +121,8 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		namespace: "html",
 	});
 	group.classList.add("status-group");
+	group.style.display = "flex";
+	group.style.justifyContent = "center";
 	// reuse rowIndex for status radios
 	statusNames.forEach((name, index) => {
 		const label = dialog.createElement(doc, "label", {
@@ -168,6 +172,19 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		statusCell,
 		removeCell,
 	);
+	for (const cell of [
+		moduleCell,
+		unitCell,
+		chapterCell,
+		pagesCell,
+		paragraphCell,
+		typeCell,
+		statusCell,
+		removeCell,
+	]) {
+		(cell as HTMLElement).style.padding = "4px";
+		(cell as HTMLElement).style.textAlign = "center";
+	}
 	return row;
 }
 
@@ -208,15 +225,25 @@ function save(window: Window) {
 	const tasks: ReadingTask[] = [];
 	for (const row of rows) {
 		const cells = row.children;
-		const typeInput = cells[5].querySelector('input[type="radio"]:checked') as HTMLInputElement | null;
-		const statusInput = cells[6].querySelector('input[type="radio"]:checked') as HTMLInputElement | null;
+		const typeInput = cells[5].querySelector<HTMLInputElement>(
+			'input[type="radio"]:checked',
+		);
+		const statusInput = cells[6].querySelector<HTMLInputElement>(
+			'input[type="radio"]:checked',
+		);
 
 		tasks.push({
 			module: (cells[0].firstChild as HTMLInputElement).value.trim(),
 			unit: (cells[1].firstChild as HTMLInputElement).value.trim(),
-			chapter: (cells[2].firstChild as HTMLInputElement).value.trim() || undefined,
-			pages: (cells[3].firstChild as HTMLInputElement).value.trim() || undefined,
-			paragraph: (cells[4].firstChild as HTMLInputElement).value.trim() || undefined,
+			chapter:
+				(cells[2].firstChild as HTMLInputElement).value.trim() ||
+				undefined,
+			pages:
+				(cells[3].firstChild as HTMLInputElement).value.trim() ||
+				undefined,
+			paragraph:
+				(cells[4].firstChild as HTMLInputElement).value.trim() ||
+				undefined,
 			type: typeInput?.value || undefined,
 			status: statusInput?.value || statusNames[0],
 		});
@@ -257,7 +284,18 @@ async function open(item: Zotero.Item) {
 			{
 				tag: "h2",
 				namespace: "html",
-				properties: { innerHTML: getString("reading-tasks-title") },
+				properties: {
+					innerHTML: getString("reading-tasks-title"),
+					style: "text-align:center;margin:0;",
+				},
+			},
+			{
+				tag: "div",
+				namespace: "html",
+				properties: {
+					innerHTML: item.getField("title"),
+					style: "text-align:center;font-weight:bold;margin-bottom:8px;",
+				},
 			},
 			{
 				tag: "datalist",
@@ -280,6 +318,9 @@ async function open(item: Zotero.Item) {
 			{
 				tag: "table",
 				namespace: "html",
+				attributes: {
+					style: "width:100%;border-collapse:collapse;text-align:center;",
+				},
 				children: [
 					{
 						tag: "thead",
@@ -289,35 +330,59 @@ async function open(item: Zotero.Item) {
 								children: [
 									{
 										tag: "th",
-										properties: { innerHTML: "Module" },
+										properties: {
+											innerHTML: "Module",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Unit" },
+										properties: {
+											innerHTML: "Unit",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Chapter" },
+										properties: {
+											innerHTML: "Chapter",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Pages" },
+										properties: {
+											innerHTML: "Pages",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Paragraph" },
+										properties: {
+											innerHTML: "Paragraph",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Type" },
+										properties: {
+											innerHTML: "Type",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Status" },
+										properties: {
+											innerHTML: "Status",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Remove" },
+										properties: {
+											innerHTML: "Remove",
+											style: "padding:4px;text-align:center;",
+										},
 									},
 								],
 							},
