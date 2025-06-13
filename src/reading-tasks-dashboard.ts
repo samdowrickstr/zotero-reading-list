@@ -15,7 +15,11 @@ async function getAllItemTasks(): Promise<ItemTask[]> {
 	const libs = Zotero.Libraries.getAll();
 	for (const lib of libs) {
 		const items = await Zotero.Items.getAll(lib.libraryID, true);
+		// Ensure each item is fully loaded so child notes are available
 		for (const item of items) {
+			if (typeof item.loadAllData === "function") {
+				await item.loadAllData();
+			}
 			if (!item.isRegularItem()) {
 				continue;
 			}
