@@ -261,6 +261,7 @@ export default class ZoteroReadingList {
 	fileOpenedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
 	preferenceUpdateObservers?: symbol[];
+	readingTasksPaneID?: string | number;
 	statusNames: string[];
 	statusIcons: string[];
 
@@ -273,6 +274,7 @@ export default class ZoteroReadingList {
 		this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
+		this.addReadingTasksPane();
 
 		if (getPref(ENABLE_KEYBOARD_SHORTCUTS_PREF)) {
 			this.addKeyboardShortcutListener();
@@ -296,6 +298,7 @@ export default class ZoteroReadingList {
 		this.removeNewItemLabeller();
 		this.removeFileOpenedListener();
 		this.removePreferenceUpdateObservers();
+		this.removeReadingTasksPane();
 		this.unpatchExportFunction();
 	}
 
@@ -575,6 +578,42 @@ export default class ZoteroReadingList {
 
 	removeRightClickMenu() {
 		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
+	}
+
+	addReadingTasksPane() {
+		this.readingTasksPaneID = Zotero.ItemPaneManager.registerSection({
+			paneID: "zotero-reading-tasks-pane",
+			pluginID: config.addonID,
+			header: {
+				l10nID: "reading-tasks-title",
+				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+			},
+			sidenav: {
+				l10nID: "reading-tasks-title",
+				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+			},
+			bodyXHTML:
+				'<div xmlns:html="http://www.w3.org/1999/xhtml" style="white-space: pre-wrap;" id="reading-tasks-pane-body"></div>',
+			onRender: ({
+				body,
+				item,
+			}: {
+				body: HTMLElement;
+				item: Zotero.Item;
+			}) => {
+				const tasks = getReadingTasks(item);
+				body.textContent = tasks.length
+					? tasksToString(tasks)
+					: getString("reading-tasks-none");
+			},
+		});
+	}
+
+	removeReadingTasksPane() {
+		if (this.readingTasksPaneID) {
+			Zotero.ItemPaneManager.unregisterSection(this.readingTasksPaneID);
+			this.readingTasksPaneID = undefined;
+		}
 	}
 
 	addNewItemLabeller() {

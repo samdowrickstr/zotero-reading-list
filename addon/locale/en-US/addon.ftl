@@ -27,3 +27,5 @@ reading-task-prompt-type = Reading Type
 reading-task-type-required = Required Reading
 reading-task-type-additional = Additional Reading
 manage-reading-tasks-menu = Manage Reading Tasks
+reading-tasks-pane-header = Reading Tasks
+reading-tasks-pane-sidenav = Reading Tasks
