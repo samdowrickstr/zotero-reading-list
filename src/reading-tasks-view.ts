@@ -169,10 +169,12 @@ function open(item: Zotero.Item) {
 		children: [
 			{
 				tag: "h2",
+				namespace: "html",
 				properties: { innerHTML: getString("reading-tasks-title") },
 			},
 			{
 				tag: "table",
+				namespace: "html",
 				children: [
 					{
 						tag: "thead",
