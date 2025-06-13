@@ -48,20 +48,15 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	paragraphCell.append(createInput(window, task.paragraph));
 
 	const statusCell = createElement(window, "td");
-	const menuList = window.document.createXULElement(
-		"menulist",
-	) as unknown as XUL.MenuList;
-	menuList.setAttribute("native", "true");
-	const popup = window.document.createXULElement("menupopup");
+	const select = createElement(window, "select") as HTMLSelectElement;
 	statusNames.forEach((name, index) => {
-		const item = window.document.createXULElement("menuitem");
-		item.setAttribute("label", `${statusIcons[index]} ${name}`);
-		item.setAttribute("value", name);
-		popup.append(item);
+		const option = createElement(window, "option") as HTMLOptionElement;
+		option.value = name;
+		option.textContent = `${statusIcons[index]} ${name}`;
+		select.append(option);
 	});
-	menuList.append(popup);
-	menuList.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
-	statusCell.append(menuList as unknown as Node);
+	select.value = task.status || statusNames[0];
+	statusCell.append(select);
 
 	const doneCell = createElement(window, "td");
 	const check = createElement(window, "input") as HTMLInputElement;
@@ -137,9 +132,8 @@ function save(window: Window) {
 				undefined,
 
 			status:
-				(
-					cells[5].firstChild as unknown as XUL.MenuList
-				).selectedItem?.getAttribute("value") || statusNames[0],
+				(cells[5].firstChild as HTMLSelectElement).value ||
+				statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
 	}
