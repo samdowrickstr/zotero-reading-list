@@ -23,4 +23,7 @@ reading-task-prompt-unit = Unit
 reading-task-prompt-chapter = Chapter
 reading-task-prompt-pages = Pages
 reading-task-prompt-paragraph = Paragraph
+reading-task-prompt-type = Reading Type
+reading-task-type-required = Required Reading
+reading-task-type-additional = Additional Reading
 manage-reading-tasks-menu = Manage Reading Tasks

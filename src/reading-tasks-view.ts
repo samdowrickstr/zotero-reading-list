@@ -58,6 +58,11 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	});
 	paragraphCell.append(createInput(dialog, task.paragraph));
 
+	const typeCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	});
+	typeCell.append(createInput(dialog, task.type, "type-tags"));
+
 	const statusCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	});
@@ -116,6 +121,7 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		chapterCell,
 		pagesCell,
 		paragraphCell,
+		typeCell,
 		statusCell,
 		doneCell,
 		removeCell,
@@ -172,14 +178,16 @@ function save(window: Window) {
 			paragraph:
 				(cells[4].firstChild as HTMLInputElement).value.trim() ||
 				undefined,
-
+			type:
+				(cells[5].firstChild as HTMLInputElement).value.trim() ||
+				undefined,
 			status:
 				(
-					cells[5].querySelector(
+					cells[6].querySelector(
 						'input[type="radio"]:checked',
 					) as HTMLInputElement
 				)?.value || statusNames[0],
-			done: (cells[6].firstChild as HTMLInputElement).checked,
+			done: (cells[7].firstChild as HTMLInputElement).checked,
 		});
 	}
 	setReadingTasks(item, tasks);
@@ -205,12 +213,19 @@ function onLoad(window: Window) {
 
 async function open(item: Zotero.Item) {
 	rowsCounter = 0;
-	const unitTags = (await Zotero.Tags.getAll(item.libraryID))
-		.map((t) => t.tag)
-		.filter((n: string) => /^Unit\s/i.test(n));
-	const moduleTags = (await Zotero.Tags.getAll(item.libraryID))
-		.map((t) => t.tag)
-		.filter((n: string) => /ULAW/.test(n));
+	const allTags = (await Zotero.Tags.getAll(item.libraryID)).map(
+		(t) => t.tag,
+	);
+	const unitTags = allTags.filter((n: string) => /^Unit\s/i.test(n));
+	const moduleTags = allTags.filter((n: string) => /ULAW/.test(n));
+	const typeSet = new Set<string>(
+		allTags.filter((n: string) =>
+			/Required Reading|Additional Reading/i.test(n),
+		),
+	);
+	typeSet.add(getString("reading-task-type-required"));
+	typeSet.add(getString("reading-task-type-additional"));
+	const typeTags = Array.from(typeSet);
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
 		tag: "vbox",
@@ -236,6 +251,15 @@ async function open(item: Zotero.Item) {
 				children: unitTags.map((u: string) => ({
 					tag: "option" as const,
 					attributes: { value: u },
+				})),
+			},
+			{
+				tag: "datalist",
+				namespace: "html",
+				attributes: { id: "type-tags" },
+				children: typeTags.map((t: string) => ({
+					tag: "option" as const,
+					attributes: { value: t },
 				})),
 			},
 			{
@@ -267,6 +291,10 @@ async function open(item: Zotero.Item) {
 									{
 										tag: "th",
 										properties: { innerHTML: "Paragraph" },
+									},
+									{
+										tag: "th",
+										properties: { innerHTML: "Type" },
 									},
 									{
 										tag: "th",

@@ -215,12 +215,24 @@ function promptAddReadingTask() {
 		{},
 	);
 
+	const typeInput = { value: getString("reading-task-type-required") };
+
+	promptSvc.prompt(
+		window as mozIDOMWindowProxy,
+		getString("add-reading-task-menu"),
+		getString("reading-task-prompt-type"),
+		typeInput,
+		null,
+		{},
+	);
+
 	const task = {
 		module: moduleInput.value.trim(),
 		unit: unitInput.value.trim(),
 		chapter: chapterInput.value.trim() || undefined,
 		pages: pagesInput.value.trim() || undefined,
 		paragraph: paragraphInput.value.trim() || undefined,
+		type: typeInput.value.trim() || undefined,
 		status:
 			prefStringToList(
 				getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,

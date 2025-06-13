@@ -4,6 +4,7 @@ export interface ReadingTask {
 	chapter?: string;
 	pages?: string;
 	paragraph?: string;
+	type?: string;
 	status: string;
 	done?: boolean;
 }
@@ -78,7 +79,8 @@ export function tasksToString(tasks: ReadingTask[]): string {
 				.filter(Boolean)
 				.join(" > ");
 			const done = t.done ? "✔" : "✘";
-			return `${idx + 1}. ${details} [${t.status}] - ${done}`;
+			const type = t.type ? ` (${t.type})` : "";
+			return `${idx + 1}. ${details} [${t.status}]${type} - ${done}`;
 		})
 		.join("\n");
 }
@@ -87,6 +89,7 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 	const tasks = getReadingTasks(item);
 	const unitTags = new Set<string>();
 	const moduleTags = new Set<string>();
+	const typeTags = new Set<string>();
 	for (const t of tasks) {
 		if (t.unit) {
 			unitTags.add(`Unit ${t.unit}`);
@@ -94,12 +97,20 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 		if (t.module && t.module.includes("ULAW")) {
 			moduleTags.add(t.module);
 		}
+		if (t.type) {
+			typeTags.add(t.type);
+		}
 	}
 	const existing = item.getTags().map((t) => t.tag);
 	for (const tag of existing) {
 		if (/^Unit\s/.test(tag) && !unitTags.has(tag)) {
 			item.removeTag(tag);
 		} else if (/ULAW/.test(tag) && !moduleTags.has(tag)) {
+			item.removeTag(tag);
+		} else if (
+			/^(Required Reading|Additional Reading)$/i.test(tag) &&
+			!typeTags.has(tag)
+		) {
 			item.removeTag(tag);
 		}
 	}
@@ -109,6 +120,11 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 		}
 	}
 	for (const tag of moduleTags) {
+		if (!existing.includes(tag)) {
+			item.addTag(tag);
+		}
+	}
+	for (const tag of typeTags) {
 		if (!existing.includes(tag)) {
 			item.addTag(tag);
 		}
