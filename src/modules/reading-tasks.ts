@@ -8,18 +8,41 @@ export interface ReadingTask {
 	status: string;
 }
 
-const READING_TASKS_EXTRA_FIELD = "Reading_Tasks";
+import { getTasksFromNote, saveTasksToNote } from "../utils/noteHelpers";
 
-import {
-	getItemExtraProperty,
-	setItemExtraProperty,
-} from "../utils/extraField";
+export function sortTasks(tasks: ReadingTask[]): ReadingTask[] {
+	return tasks.slice().sort((a, b) => {
+		const mod = (a.module || "").localeCompare(b.module || "", undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		if (mod !== 0) {
+			return mod;
+		}
+		const unit = (a.unit || "").localeCompare(b.unit || "", undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		if (unit !== 0) {
+			return unit;
+		}
+		const typeWeight = (t: string | undefined) => {
+			if (!t) return 0;
+			const lower = t.toLowerCase();
+			if (lower === "required" || lower === "core") return 0;
+			if (lower === "additional") return 1;
+			return 2;
+		};
+		return typeWeight(a.type) - typeWeight(b.type);
+	});
+}
 
 export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
-	const extra = getItemExtraProperty(item, READING_TASKS_EXTRA_FIELD);
-	if (extra.length) {
+	const content = getTasksFromNote(item);
+	if (content) {
 		try {
-			return JSON.parse(extra[0]) as ReadingTask[];
+			const tasks = JSON.parse(content) as ReadingTask[];
+			return sortTasks(tasks);
 		} catch {
 			return [];
 		}
@@ -28,12 +51,8 @@ export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 }
 
 export function setReadingTasks(item: Zotero.Item, tasks: ReadingTask[]): void {
-	setItemExtraProperty(
-		item,
-		READING_TASKS_EXTRA_FIELD,
-		JSON.stringify(tasks),
-	);
-	void item.saveTx();
+	const sorted = sortTasks(tasks);
+	saveTasksToNote(item, JSON.stringify(sorted));
 	updateItemTagsFromTasks(item);
 }
 
@@ -89,19 +108,33 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			moduleTags.add(t.module);
 		}
 		if (t.type) {
-			typeTags.add(t.type);
+			// Convert required/additional types into longer tag names
+			if (/^Required$/i.test(t.type)) {
+				typeTags.add("Required Reading");
+			} else if (/^Additional$/i.test(t.type)) {
+				typeTags.add("Additional Reading");
+			} else {
+				typeTags.add(t.type);
+			}
 		}
 	}
+
 	const existing = item.getTags().map((t) => t.tag);
 	for (const tag of existing) {
 		if (/^Unit\s/.test(tag) && !unitTags.has(tag)) {
 			item.removeTag(tag);
 		} else if (/ULAW/.test(tag) && !moduleTags.has(tag)) {
 			item.removeTag(tag);
-		} else if (/^(Required|Additional)$/i.test(tag) && !typeTags.has(tag)) {
+		} else if (
+			/^(Required Reading|Additional Reading|Required|Additional)$/i.test(
+				tag,
+			) &&
+			!typeTags.has(tag)
+		) {
 			item.removeTag(tag);
 		}
 	}
+
 	for (const tag of unitTags) {
 		if (!existing.includes(tag)) {
 			item.addTag(tag);
@@ -117,5 +150,6 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			item.addTag(tag);
 		}
 	}
+
 	void item.saveTx();
 }

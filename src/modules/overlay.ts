@@ -149,6 +149,14 @@ function openManageReadingTasks() {
 	void addon.readingTasksView.open(items[0]);
 }
 
+function openImportReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	void addon.readingTasksImport.open(items[0]);
+}
+
 function promptAddReadingTask() {
 	const items = getSelectedItems();
 	if (!items.length) {
@@ -569,6 +577,17 @@ export default class ZoteroReadingList {
 					label: getString("manage-reading-tasks-menu"),
 					commandListener: () => openManageReadingTasks(),
 				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("reading-tasks-dashboard-title"),
+					commandListener: () =>
+						void addon.readingTasksDashboard.open(),
+				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("import-reading-tasks-menu"),
+					commandListener: () => openImportReadingTasks(),
+				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
@@ -593,7 +612,7 @@ export default class ZoteroReadingList {
 				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
 			},
 			bodyXHTML:
-				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button></div></div>',
+				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button><button id="reading-tasks-pane-dashboard" style="margin-left:4px;"></button><button id="reading-tasks-pane-import" style="margin-left:4px;"></button></div></div>',
 			onRender: ({
 				body,
 				item,
@@ -602,24 +621,50 @@ export default class ZoteroReadingList {
 				item: Zotero.Item;
 			}) => {
 				const tasks = getReadingTasks(item);
-				const textDiv = body.querySelector(
-					"#reading-tasks-pane-body",
-				) as HTMLDivElement | null;
+				const textDiv = body.querySelector("#reading-tasks-pane-body");
 				if (textDiv) {
 					textDiv.textContent = tasks.length
 						? tasksToString(tasks)
 						: getString("reading-tasks-none");
 				}
-				const addBtn = body.querySelector("#reading-tasks-pane-add") as HTMLButtonElement | null;
+				const addBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-add",
+				);
 				if (addBtn) {
 					addBtn.textContent = getString("add-reading-task-menu");
-					addBtn.onclick = () => promptAddReadingTask();           // ← one handler only
+					addBtn.onclick = () => promptAddReadingTask(); // ← one handler only
 				}
 
-				const manageBtn = body.querySelector("#reading-tasks-pane-manage") as HTMLButtonElement | null;
+				const manageBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-manage",
+				);
 				if (manageBtn) {
-					manageBtn.textContent = getString("manage-reading-tasks-menu");
-					manageBtn.onclick = () => addon.readingTasksView.open(item);   // ← one handler only
+					manageBtn.textContent = getString(
+						"manage-reading-tasks-menu",
+					);
+					manageBtn.onclick = () => addon.readingTasksView.open(item); // ← one handler only
+				}
+
+				const dashBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-dashboard",
+				);
+				if (dashBtn) {
+					dashBtn.textContent = getString(
+						"reading-tasks-dashboard-title",
+					);
+					dashBtn.onclick = () =>
+						void addon.readingTasksDashboard.open();
+				}
+
+				const importBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-import",
+				);
+				if (importBtn) {
+					importBtn.textContent = getString(
+						"import-reading-tasks-menu",
+					);
+					importBtn.onclick = () =>
+						void addon.readingTasksImport.open(item);
 				}
 			},
 		});
