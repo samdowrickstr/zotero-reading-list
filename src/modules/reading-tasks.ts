@@ -95,7 +95,7 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			moduleTags.add(t.module);
 		}
 	}
-	const existing = item.getTags().map((t: any) => t.tag);
+	const existing = item.getTags().map((t) => t.tag);
 	for (const tag of existing) {
 		if (/^Unit\s/.test(tag) && !unitTags.has(tag)) {
 			item.removeTag(tag);

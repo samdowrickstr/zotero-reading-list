@@ -21,7 +21,7 @@ function createInput(dialog: DialogHelper, value?: string, listId?: string) {
 	const input = dialog.createElement(dialog.window.document, "input", {
 		namespace: "html",
 		properties: { type: "text", value: value || "" },
-	}) as HTMLInputElement;
+	});
 	if (listId) {
 		input.setAttribute("list", listId);
 	}
@@ -32,44 +32,44 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const doc = dialog.window.document;
 	const row = dialog.createElement(doc, "tr", {
 		namespace: "html",
-	}) as HTMLTableRowElement;
+	});
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
 
 	const moduleCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	moduleCell.append(createInput(dialog, task.module, "module-tags"));
 	const unitCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	unitCell.append(createInput(dialog, task.unit, "unit-tags"));
 	const chapterCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	chapterCell.append(createInput(dialog, task.chapter));
 	const pagesCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	pagesCell.append(createInput(dialog, task.pages));
 	const paragraphCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	paragraphCell.append(createInput(dialog, task.paragraph));
 
 	const statusCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	const group = dialog.createElement(doc, "div", {
 		namespace: "html",
-	}) as HTMLDivElement;
+	});
 	group.classList.add("status-group");
 	const rowIndex = rowsCounter++;
 	statusNames.forEach((name, index) => {
 		const label = dialog.createElement(doc, "label", {
 			namespace: "html",
-		}) as HTMLLabelElement;
+		});
 		label.style.marginRight = "8px";
 		const radio = dialog.createElement(doc, "input", {
 			namespace: "html",
@@ -78,14 +78,14 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 				name: `status-${rowIndex}`,
 				value: name,
 			},
-		}) as HTMLInputElement;
+		});
 		if ((task.status || statusNames[0]) === name) {
 			radio.checked = true;
 		}
 		const text = dialog.createElement(doc, "span", {
 			namespace: "html",
 			properties: { innerHTML: `${statusIcons[index]} ${name}` },
-		}) as HTMLSpanElement;
+		});
 		label.append(radio, text);
 		group.append(label);
 	});
@@ -93,20 +93,20 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 
 	const doneCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	const check = dialog.createElement(doc, "input", {
 		namespace: "html",
 		properties: { type: "checkbox", checked: !!task.done },
-	}) as HTMLInputElement;
+	});
 	doneCell.append(check);
 
 	const removeCell = dialog.createElement(doc, "td", {
 		namespace: "html",
-	}) as HTMLTableCellElement;
+	});
 	const bin = dialog.createElement(doc, "button", {
 		namespace: "html",
 		properties: { innerHTML: "🗑" },
-	}) as HTMLButtonElement;
+	});
 	bin.addEventListener("click", () => row.remove());
 	removeCell.append(bin);
 
@@ -203,13 +203,13 @@ function onLoad(window: Window) {
 	}
 }
 
-function open(item: Zotero.Item) {
+async function open(item: Zotero.Item) {
 	rowsCounter = 0;
-	const unitTags = Zotero.Tags.getAll()
-		.map((t: any) => t.name ?? t.tag)
+	const unitTags = (await Zotero.Tags.getAll(item.libraryID))
+		.map((t) => t.tag)
 		.filter((n: string) => /^Unit\s/i.test(n));
-	const moduleTags = Zotero.Tags.getAll()
-		.map((t: any) => t.name ?? t.tag)
+	const moduleTags = (await Zotero.Tags.getAll(item.libraryID))
+		.map((t) => t.tag)
 		.filter((n: string) => /ULAW/.test(n));
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
@@ -224,7 +224,7 @@ function open(item: Zotero.Item) {
 				tag: "datalist",
 				namespace: "html",
 				attributes: { id: "module-tags" },
-				children: moduleTags.map((m) => ({
+				children: moduleTags.map((m: string) => ({
 					tag: "option" as const,
 					attributes: { value: m },
 				})),
@@ -233,7 +233,7 @@ function open(item: Zotero.Item) {
 				tag: "datalist",
 				namespace: "html",
 				attributes: { id: "unit-tags" },
-				children: unitTags.map((u) => ({
+				children: unitTags.map((u: string) => ({
 					tag: "option" as const,
 					attributes: { value: u },
 				})),

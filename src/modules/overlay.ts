@@ -146,7 +146,7 @@ function openManageReadingTasks() {
 	if (!items.length) {
 		return;
 	}
-	addon.readingTasksView.open(items[0]);
+	void addon.readingTasksView.open(items[0]);
 }
 
 function promptAddReadingTask() {
