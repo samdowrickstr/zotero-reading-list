@@ -1,7 +1,36 @@
 export const READING_LIST_NOTE_MARKER = "ReadingListTasks";
+const TITLE_SEP = ":";
+
+function encodeContent(title: string, tasks: string): string {
+	return `${READING_LIST_NOTE_MARKER}${TITLE_SEP}${title}\n${tasks}`;
+}
+
+function decodeContent(content: string): {
+	title: string | null;
+	tasks: string;
+} {
+	const firstNewline = content.indexOf("\n");
+	let firstLine = content;
+	let rest = "";
+	if (firstNewline !== -1) {
+		firstLine = content.slice(0, firstNewline);
+		rest = content.slice(firstNewline + 1);
+	}
+	if (firstLine.startsWith(`${READING_LIST_NOTE_MARKER}${TITLE_SEP}`)) {
+		const title = firstLine.slice(
+			READING_LIST_NOTE_MARKER.length + TITLE_SEP.length,
+		);
+		return { title, tasks: rest };
+	}
+	if (firstLine.startsWith(READING_LIST_NOTE_MARKER)) {
+		// Old format with just the marker
+		return { title: null, tasks: rest };
+	}
+	return { title: null, tasks: content };
+}
 
 export function findReadingTasksNote(item: Zotero.Item): Zotero.Item | null {
-	const noteIDs = item.getNotes();
+	const noteIDs = item.getNotes(true);
 	for (const id of noteIDs) {
 		const note = Zotero.Items.get(id);
 		if (!note?.isNote()) {
@@ -25,7 +54,8 @@ export function getOrCreateReadingTasksNote(item: Zotero.Item): Zotero.Item {
 	note.parentID = item.id;
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	(note as any).hidden = true;
-	note.setNote(`${READING_LIST_NOTE_MARKER}\n[]`);
+	const title = item.getField("title");
+	note.setNote(encodeContent(title, "[]"));
 	void note.saveTx();
 	return note;
 }
@@ -35,12 +65,22 @@ export function getTasksFromNote(item: Zotero.Item): string | null {
 	if (!note) {
 		return null;
 	}
-	const content = note.getNote();
-	return content.replace(/^.+?\n/, "");
+	const { tasks } = decodeContent(note.getNote());
+	return tasks;
+}
+
+export function getTitleFromNote(item: Zotero.Item): string | null {
+	const note = findReadingTasksNote(item);
+	if (!note) {
+		return null;
+	}
+	const { title } = decodeContent(note.getNote());
+	return title;
 }
 
 export function saveTasksToNote(item: Zotero.Item, tasks: string): void {
 	const note = getOrCreateReadingTasksNote(item);
-	note.setNote(`${READING_LIST_NOTE_MARKER}\n${tasks}`);
+	const title = item.getField("title");
+	note.setNote(encodeContent(title, tasks));
 	void note.saveTx();
 }

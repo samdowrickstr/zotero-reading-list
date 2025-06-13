@@ -13,6 +13,7 @@ import {
 import { setItemExtraProperty } from "./utils/extraField";
 import { DialogHelper } from "zotero-plugin-toolkit";
 import { getString } from "./utils/locale";
+import { getTitleFromNote } from "./utils/noteHelpers";
 
 const TABLE_BODY = "reading-tasks-table-body";
 let rowsCounter = 0;
@@ -272,6 +273,9 @@ function onLoad(window: Window) {
 
 async function open(item: Zotero.Item) {
 	rowsCounter = 0;
+	if (typeof item.loadAllData === "function") {
+		await item.loadAllData();
+	}
 	const allTags = (await Zotero.Tags.getAll(item.libraryID)).map(
 		(t) => t.tag,
 	);
@@ -293,7 +297,8 @@ async function open(item: Zotero.Item) {
 				tag: "div",
 				namespace: "html",
 				properties: {
-					innerHTML: item.getField("title"),
+					innerHTML:
+						item.getField("title") || getTitleFromNote(item) || "",
 					style: "text-align:center;font-weight:bold;margin-bottom:8px;",
 				},
 			},

@@ -1,6 +1,7 @@
 import { DialogHelper } from "zotero-plugin-toolkit";
 import { getString } from "./utils/locale";
 import { getReadingTasks, ReadingTask } from "./modules/reading-tasks";
+import { getTitleFromNote } from "./utils/noteHelpers";
 
 interface ItemTask {
 	item: Zotero.Item;
@@ -34,7 +35,7 @@ async function getAllItemTasks(): Promise<ItemTask[]> {
 function createRow(doc: Document, it: ItemTask) {
 	const row = doc.createElement("tr");
 	const cells = [
-		it.item.getField("title"),
+		it.item.getField("title") || getTitleFromNote(it.item) || "",
 		it.task.module,
 		it.task.unit,
 		it.task.chapter || "",
@@ -184,15 +185,17 @@ function applyFilterAndSort(doc: Document) {
 	tbody.replaceChildren();
 	let tasks = currentTasks;
 	if (filter) {
-		tasks = tasks.filter((it) =>
-			`${it.item.getField("title")} ${it.task.module} ${it.task.unit} ${
+		tasks = tasks.filter((it) => {
+			const title =
+				it.item.getField("title") || getTitleFromNote(it.item) || "";
+			return `${title} ${it.task.module} ${it.task.unit} ${
 				it.task.chapter || ""
 			} ${it.task.pages || ""} ${it.task.paragraph || ""} ${
 				it.task.type || ""
 			} ${it.task.status}`
 				.toLowerCase()
-				.includes(filter),
-		);
+				.includes(filter);
+		});
 	}
 	tasks = tasks.slice().sort((a, b) => {
 		const va = getValue(a, sortKey);
@@ -208,7 +211,7 @@ function applyFilterAndSort(doc: Document) {
 
 function getValue(it: ItemTask, key: keyof ItemTask["task"] | "title") {
 	if (key === "title") {
-		return it.item.getField("title");
+		return it.item.getField("title") || getTitleFromNote(it.item) || "";
 	}
 	return it.task[key] || "";
 }
