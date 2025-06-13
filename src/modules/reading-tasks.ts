@@ -8,18 +8,13 @@ export interface ReadingTask {
 	status: string;
 }
 
-const READING_TASKS_EXTRA_FIELD = "Reading_Tasks";
-
-import {
-	getItemExtraProperty,
-	setItemExtraProperty,
-} from "../utils/extraField";
+import { getTasksFromNote, saveTasksToNote } from "../utils/noteHelpers";
 
 export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
-	const extra = getItemExtraProperty(item, READING_TASKS_EXTRA_FIELD);
-	if (extra.length) {
+	const content = getTasksFromNote(item);
+	if (content) {
 		try {
-			return JSON.parse(extra[0]) as ReadingTask[];
+			return JSON.parse(content) as ReadingTask[];
 		} catch {
 			return [];
 		}
@@ -28,12 +23,7 @@ export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 }
 
 export function setReadingTasks(item: Zotero.Item, tasks: ReadingTask[]): void {
-	setItemExtraProperty(
-		item,
-		READING_TASKS_EXTRA_FIELD,
-		JSON.stringify(tasks),
-	);
-	void item.saveTx();
+	saveTasksToNote(item, JSON.stringify(tasks));
 	updateItemTagsFromTasks(item);
 }
 
