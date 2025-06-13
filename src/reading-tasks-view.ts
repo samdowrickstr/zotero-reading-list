@@ -17,34 +17,37 @@ import { getString } from "./utils/locale";
 const TABLE_BODY = "reading-tasks-table-body";
 
 function createElement(window: Window, tag: string) {
+	if (tag.startsWith("html:")) {
+		tag = tag.substring(5);
+	}
 	return window.document.createElementNS("http://www.w3.org/1999/xhtml", tag);
 }
 
 function createInput(window: Window, value?: string) {
-	const input = createElement(window, "html:input") as HTMLInputElement;
+	const input = createElement(window, "input") as HTMLInputElement;
 	input.type = "text";
 	input.value = value || "";
 	return input;
 }
 
 function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
-	const row = createElement(window, "html:tr");
+	const row = createElement(window, "tr");
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
 
-	const moduleCell = createElement(window, "html:td");
+	const moduleCell = createElement(window, "td");
 	moduleCell.append(createInput(window, task.module));
-	const unitCell = createElement(window, "html:td");
+	const unitCell = createElement(window, "td");
 	unitCell.append(createInput(window, task.unit));
-	const chapterCell = createElement(window, "html:td");
+	const chapterCell = createElement(window, "td");
 	chapterCell.append(createInput(window, task.chapter));
-	const pagesCell = createElement(window, "html:td");
+	const pagesCell = createElement(window, "td");
 	pagesCell.append(createInput(window, task.pages));
-	const paragraphCell = createElement(window, "html:td");
+	const paragraphCell = createElement(window, "td");
 	paragraphCell.append(createInput(window, task.paragraph));
 
-	const statusCell = createElement(window, "html:td");
+	const statusCell = createElement(window, "td");
 	const menuList = window.document.createXULElement(
 		"menulist",
 	) as unknown as XUL.MenuList;
@@ -58,14 +61,14 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	menuList.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
 	statusCell.append(menuList as unknown as Node);
 
-	const doneCell = createElement(window, "html:td");
-	const check = createElement(window, "html:input") as HTMLInputElement;
+	const doneCell = createElement(window, "td");
+	const check = createElement(window, "input") as HTMLInputElement;
 	check.type = "checkbox";
 	check.checked = !!task.done;
 	doneCell.append(check);
 
-	const removeCell = createElement(window, "html:td");
-	const bin = createElement(window, "html:button");
+	const removeCell = createElement(window, "td");
+	const bin = createElement(window, "button");
 	bin.textContent = "🗑";
 	bin.onclick = () => row.remove();
 	removeCell.append(bin);
@@ -165,55 +168,55 @@ function open(item: Zotero.Item) {
 		tag: "vbox",
 		children: [
 			{
-				tag: "html:h2",
+				tag: "h2",
 				properties: { innerHTML: getString("reading-tasks-title") },
 			},
 			{
-				tag: "html:table",
+				tag: "table",
 				children: [
 					{
-						tag: "html:thead",
+						tag: "thead",
 						children: [
 							{
-								tag: "html:tr",
+								tag: "tr",
 								children: [
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Module" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Unit" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Chapter" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Pages" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Paragraph" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Status" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Done" },
 									},
 									{
-										tag: "html:th",
+										tag: "th",
 										properties: { innerHTML: "Remove" },
 									},
 								],
 							},
 						],
 					},
-					{ tag: "html:tbody", attributes: { id: TABLE_BODY } },
+					{ tag: "tbody", attributes: { id: TABLE_BODY } },
 				],
 			},
 		],
