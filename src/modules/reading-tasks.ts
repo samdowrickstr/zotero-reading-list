@@ -6,7 +6,6 @@ export interface ReadingTask {
 	paragraph?: string;
 	type?: string;
 	status: string;
-	done?: boolean;
 }
 
 const READING_TASKS_EXTRA_FIELD = "Reading_Tasks";
@@ -64,23 +63,14 @@ export function updateTaskStatus(
 	}
 }
 
-export function markTaskAsDone(item: Zotero.Item, index: number): void {
-	const tasks = getReadingTasks(item);
-	if (tasks[index]) {
-		tasks[index].done = true;
-		setReadingTasks(item, tasks);
-	}
-}
-
 export function tasksToString(tasks: ReadingTask[]): string {
 	return tasks
 		.map((t, idx) => {
 			const details = [t.module, t.unit, t.chapter, t.pages, t.paragraph]
 				.filter(Boolean)
 				.join(" > ");
-			const done = t.done ? "✔" : "✘";
 			const type = t.type ? ` (${t.type})` : "";
-			return `${idx + 1}. ${details} [${t.status}]${type} - ${done}`;
+			return `${idx + 1}. ${details} [${t.status}]${type}`;
 		})
 		.join("\n");
 }

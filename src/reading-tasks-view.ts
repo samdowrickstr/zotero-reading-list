@@ -81,7 +81,30 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const typeCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	});
-	typeCell.append(createInput(dialog, task.type, "type-tags"));
+	const rowIndex = rowsCounter++;
+	const typeGroup = dialog.createElement(doc, "div", {
+		namespace: "html",
+	});
+	const typeNames = [
+		getString("reading-task-type-required"),
+		getString("reading-task-type-additional"),
+	];
+	typeNames.forEach((t) => {
+		const label = dialog.createElement(doc, "label", {
+			namespace: "html",
+		});
+		label.style.marginRight = "8px";
+		const radio = dialog.createElement(doc, "input", {
+			namespace: "html",
+			attributes: { type: "radio", name: `type-${rowIndex}`, value: t },
+		});
+		if ((task.type || typeNames[0]) === t) {
+			radio.checked = true;
+		}
+		label.append(radio, doc.createTextNode(t));
+		typeGroup.append(label);
+	});
+	typeCell.append(typeGroup);
 
 	const statusCell = dialog.createElement(doc, "td", {
 		namespace: "html",
@@ -90,7 +113,7 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		namespace: "html",
 	});
 	group.classList.add("status-group");
-	const rowIndex = rowsCounter++;
+	// reuse rowIndex for status radios
 	statusNames.forEach((name, index) => {
 		const label = dialog.createElement(doc, "label", {
 			namespace: "html",
@@ -115,15 +138,6 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		group.append(label);
 	});
 	statusCell.append(group);
-
-	const doneCell = dialog.createElement(doc, "td", {
-		namespace: "html",
-	});
-	const check = dialog.createElement(doc, "input", {
-		namespace: "html",
-		properties: { type: "checkbox", checked: !!task.done },
-	});
-	doneCell.append(check);
 
 	const removeCell = dialog.createElement(doc, "td", {
 		namespace: "html",
@@ -168,7 +182,6 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		paragraphCell,
 		typeCell,
 		statusCell,
-		doneCell,
 		removeCell,
 		moveCell,
 	);
@@ -233,7 +246,6 @@ function save(window: Window) {
 						'input[type="radio"]:checked',
 					) as HTMLInputElement
 				)?.value || statusNames[0],
-			done: (cells[7].firstChild as HTMLInputElement).checked,
 		});
 	}
 	setReadingTasks(item, tasks);
@@ -264,14 +276,6 @@ async function open(item: Zotero.Item) {
 	);
 	const unitTags = allTags.filter((n: string) => /^Unit\s/i.test(n));
 	const moduleTags = allTags.filter((n: string) => /ULAW/.test(n));
-	const typeSet = new Set<string>(
-		allTags.filter((n: string) =>
-			/Required Reading|Additional Reading/i.test(n),
-		),
-	);
-	typeSet.add(getString("reading-task-type-required"));
-	typeSet.add(getString("reading-task-type-additional"));
-	const typeTags = Array.from(typeSet);
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
 		tag: "vbox",
@@ -297,15 +301,6 @@ async function open(item: Zotero.Item) {
 				children: unitTags.map((u: string) => ({
 					tag: "option" as const,
 					attributes: { value: u },
-				})),
-			},
-			{
-				tag: "datalist",
-				namespace: "html",
-				attributes: { id: "type-tags" },
-				children: typeTags.map((t: string) => ({
-					tag: "option" as const,
-					attributes: { value: t },
 				})),
 			},
 			{
@@ -348,10 +343,6 @@ async function open(item: Zotero.Item) {
 									},
 									{
 										tag: "th",
-										properties: { innerHTML: "Done" },
-									},
-									{
-										tag: "th",
 										properties: { innerHTML: "Remove" },
 									},
 									{
@@ -379,8 +370,8 @@ async function open(item: Zotero.Item) {
 	});
 	addon.data.dialog = dialog;
 	dialog.open(getString("manage-reading-tasks-menu"), {
-		width: 1200,
-		height: 400,
+		width: 900,
+		height: 600,
 		resizable: true,
 	});
 }

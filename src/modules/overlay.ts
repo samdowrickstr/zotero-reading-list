@@ -593,7 +593,7 @@ export default class ZoteroReadingList {
 				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
 			},
 			bodyXHTML:
-				'<div xmlns:html="http://www.w3.org/1999/xhtml" style="white-space: pre-wrap;" id="reading-tasks-pane-body"></div>',
+				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button></div></div>',
 			onRender: ({
 				body,
 				item,
@@ -602,9 +602,35 @@ export default class ZoteroReadingList {
 				item: Zotero.Item;
 			}) => {
 				const tasks = getReadingTasks(item);
-				body.textContent = tasks.length
-					? tasksToString(tasks)
-					: getString("reading-tasks-none");
+				const textDiv = body.querySelector(
+					"#reading-tasks-pane-body",
+				) as HTMLDivElement | null;
+				if (textDiv) {
+					textDiv.textContent = tasks.length
+						? tasksToString(tasks)
+						: getString("reading-tasks-none");
+				}
+				const addBtn = body.querySelector(
+					"#reading-tasks-pane-add",
+				) as HTMLButtonElement | null;
+				if (addBtn) {
+					addBtn.textContent = getString("add-reading-task-menu");
+					addBtn.addEventListener("click", () =>
+						promptAddReadingTask(),
+					);
+				}
+				const manageBtn = body.querySelector(
+					"#reading-tasks-pane-manage",
+				) as HTMLButtonElement | null;
+				if (manageBtn) {
+					manageBtn.textContent = getString(
+						"manage-reading-tasks-menu",
+					);
+					manageBtn.addEventListener(
+						"click",
+						() => void addon.readingTasksView.open(item),
+					);
+				}
 			},
 		});
 	}
