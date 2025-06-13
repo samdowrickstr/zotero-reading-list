@@ -72,9 +72,12 @@ function onLoad(win: Window) {
 	// nothing to load
 }
 
-export function open(item: Zotero.Item) {
+export async function open(item: Zotero.Item) {
 	currentItem = item;
 	parsedTasks = [];
+	if (typeof item.loadAllData === "function") {
+		await item.loadAllData();
+	}
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
 		tag: "vbox",
