@@ -612,7 +612,7 @@ export default class ZoteroReadingList {
 				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
 			},
 			bodyXHTML:
-				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button></div></div>',
+				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button><button id="reading-tasks-pane-dashboard" style="margin-left:4px;"></button><button id="reading-tasks-pane-import" style="margin-left:4px;"></button></div></div>',
 			onRender: ({
 				body,
 				item,
@@ -643,6 +643,28 @@ export default class ZoteroReadingList {
 						"manage-reading-tasks-menu",
 					);
 					manageBtn.onclick = () => addon.readingTasksView.open(item); // ← one handler only
+				}
+
+				const dashBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-dashboard",
+				);
+				if (dashBtn) {
+					dashBtn.textContent = getString(
+						"reading-tasks-dashboard-title",
+					);
+					dashBtn.onclick = () =>
+						void addon.readingTasksDashboard.open();
+				}
+
+				const importBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-import",
+				);
+				if (importBtn) {
+					importBtn.textContent = getString(
+						"import-reading-tasks-menu",
+					);
+					importBtn.onclick = () =>
+						void addon.readingTasksImport.open(item);
 				}
 			},
 		});
