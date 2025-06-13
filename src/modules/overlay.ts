@@ -1,4 +1,4 @@
-import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
+import { MenuitemOptions } from "zotero-plugin-toolkit";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";

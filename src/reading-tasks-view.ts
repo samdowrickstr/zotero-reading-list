@@ -11,7 +11,7 @@ import {
 	READ_DATE_EXTRA_FIELD,
 } from "./modules/overlay";
 import { setItemExtraProperty } from "./utils/extraField";
-import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
+import { DialogHelper } from "zotero-plugin-toolkit";
 import { getString } from "./utils/locale";
 
 const TABLE_BODY = "reading-tasks-table-body";
