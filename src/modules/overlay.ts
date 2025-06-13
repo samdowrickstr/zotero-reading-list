@@ -610,26 +610,16 @@ export default class ZoteroReadingList {
 						? tasksToString(tasks)
 						: getString("reading-tasks-none");
 				}
-				const addBtn = body.querySelector(
-					"#reading-tasks-pane-add",
-				) as HTMLButtonElement | null;
+				const addBtn = body.querySelector("#reading-tasks-pane-add") as HTMLButtonElement | null;
 				if (addBtn) {
 					addBtn.textContent = getString("add-reading-task-menu");
-					addBtn.addEventListener("click", () =>
-						promptAddReadingTask(),
-					);
+					addBtn.onclick = () => promptAddReadingTask();           // ← one handler only
 				}
-				const manageBtn = body.querySelector(
-					"#reading-tasks-pane-manage",
-				) as HTMLButtonElement | null;
+
+				const manageBtn = body.querySelector("#reading-tasks-pane-manage") as HTMLButtonElement | null;
 				if (manageBtn) {
-					manageBtn.textContent = getString(
-						"manage-reading-tasks-menu",
-					);
-					manageBtn.addEventListener(
-						"click",
-						() => void addon.readingTasksView.open(item),
-					);
+					manageBtn.textContent = getString("manage-reading-tasks-menu");
+					manageBtn.onclick = () => addon.readingTasksView.open(item);   // ← one handler only
 				}
 			},
 		});
