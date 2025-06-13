@@ -575,6 +575,11 @@ export default class ZoteroReadingList {
 					commandListener: () =>
 						void addon.readingTasksDashboard.open(),
 				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("import-reading-tasks-menu"),
+					commandListener: () => void addon.readingTasksImport.open(),
+				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;

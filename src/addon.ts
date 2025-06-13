@@ -3,6 +3,7 @@ import hooks from "./hooks";
 import prefsMenu from "./prefs-menu";
 import readingTasksView from "./reading-tasks-view";
 import readingTasksDashboard from "./reading-tasks-dashboard";
+import readingTasksImport from "./reading-tasks-import";
 import { createZToolkit } from "./utils/ztoolkit";
 
 class Addon {
@@ -26,6 +27,7 @@ class Addon {
 	public prefsMenu: typeof prefsMenu;
 	public readingTasksView: typeof readingTasksView;
 	public readingTasksDashboard: typeof readingTasksDashboard;
+	public readingTasksImport: typeof readingTasksImport;
 	// APIs
 	public api: object;
 
@@ -39,6 +41,7 @@ class Addon {
 		this.prefsMenu = prefsMenu;
 		this.readingTasksView = readingTasksView;
 		this.readingTasksDashboard = readingTasksDashboard;
+		this.readingTasksImport = readingTasksImport;
 		this.api = {};
 	}
 }

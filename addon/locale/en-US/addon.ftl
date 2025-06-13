@@ -31,3 +31,7 @@ reading-tasks-pane-header = Reading Tasks
 reading-tasks-pane-sidenav = Reading Tasks
 reading-tasks-dashboard-title = Reading Tasks Dashboard
 filter-placeholder = Filter…
+import-reading-tasks-menu = Import Reading Tasks
+import-reading-tasks-title = Import Reading Tasks
+import-reading-tasks-parse = Parse
+import-reading-tasks-import = Import
