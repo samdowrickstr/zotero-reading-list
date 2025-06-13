@@ -45,27 +45,19 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	paragraphCell.append(createInput(window, task.paragraph));
 
 	const statusCell = createElement(window, "html:td");
-	// use a XUL menulist so the dropdown works inside Zotero dialogs
-
-	const list = window.document.createXULElement(
-		"menulist",
-	) as unknown as XUL.MenuList;
-	list.setAttribute("native", "true");
-
-	const popup = window.document.createXULElement(
-		"menupopup",
-	) as unknown as XUL.MenuPopup;
+	// use a regular HTML select so it works in the dynamically generated dialog
+	const select = createElement(window, "html:select") as HTMLSelectElement;
 	statusNames.forEach((name, index) => {
-		const item = window.document.createXULElement(
-			"menuitem",
-		) as unknown as XUL.MenuItem;
-		item.setAttribute("label", `${statusIcons[index]} ${name}`);
-		item.setAttribute("value", name);
-		popup.appendChild(item);
+		const option = createElement(
+			window,
+			"html:option",
+		) as HTMLOptionElement;
+		option.textContent = `${statusIcons[index]} ${name}`;
+		option.value = name;
+		select.append(option);
 	});
-	list.appendChild(popup);
-	list.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
-	statusCell.append(list);
+	select.value = task.status || statusNames[0];
+	statusCell.append(select);
 
 	const doneCell = createElement(window, "html:td");
 	const check = createElement(window, "html:input") as HTMLInputElement;
@@ -141,9 +133,7 @@ function save(window: Window) {
 				undefined,
 
 			status:
-				((
-					cells[5].firstChild as unknown as XUL.MenuList
-				).selectedItem?.getAttribute("value") as string) ||
+				(cells[5].firstChild as HTMLSelectElement).value ||
 				statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
