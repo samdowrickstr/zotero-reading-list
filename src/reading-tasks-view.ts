@@ -29,9 +29,9 @@ function createInput(window: Window, value?: string) {
 
 function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	const row = createElement(window, "html:tr");
-	const statuses = prefStringToList(
+	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
-	)[0];
+	);
 
 	const moduleCell = createElement(window, "html:td");
 	moduleCell.append(createInput(window, task.module));
@@ -45,15 +45,27 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	paragraphCell.append(createInput(window, task.paragraph));
 
 	const statusCell = createElement(window, "html:td");
-	const select = createElement(window, "html:select") as HTMLSelectElement;
-	statuses.forEach((s) => {
-		const opt = createElement(window, "html:option") as HTMLOptionElement;
-		opt.value = s;
-		opt.textContent = s;
-		select.append(opt);
+	// use a XUL menulist so the dropdown works inside Zotero dialogs
+
+	const list = window.document.createXULElement(
+		"menulist",
+	) as unknown as XUL.MenuList;
+	list.setAttribute("native", "true");
+
+	const popup = window.document.createXULElement(
+		"menupopup",
+	) as unknown as XUL.MenuPopup;
+	statusNames.forEach((name, index) => {
+		const item = window.document.createXULElement(
+			"menuitem",
+		) as unknown as XUL.MenuItem;
+		item.setAttribute("label", `${statusIcons[index]} ${name}`);
+		item.setAttribute("value", name);
+		popup.appendChild(item);
 	});
-	select.value = task.status || statuses[0];
-	statusCell.append(select);
+	list.appendChild(popup);
+	list.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
+	statusCell.append(list);
 
 	const doneCell = createElement(window, "html:td");
 	const check = createElement(window, "html:input") as HTMLInputElement;
@@ -106,9 +118,9 @@ function save(window: Window) {
 	const args = (window as any).arguments[0];
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	const item = args.item as Zotero.Item;
-	const statuses = prefStringToList(
+	const [statusNames] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
-	)[0];
+	);
 	const rows = Array.from(
 		window.document.getElementById(TABLE_BODY)?.children || [],
 	) as HTMLTableRowElement[];
@@ -127,12 +139,17 @@ function save(window: Window) {
 			paragraph:
 				(cells[4].firstChild as HTMLInputElement).value.trim() ||
 				undefined,
-			status: (cells[5].firstChild as HTMLSelectElement).value,
+
+			status:
+				((
+					cells[5].firstChild as unknown as XUL.MenuList
+				).selectedItem?.getAttribute("value") as string) ||
+				statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
 	}
 	setReadingTasks(item, tasks);
-	updateItemReadStatus(item, tasks, statuses);
+	updateItemReadStatus(item, tasks, statusNames);
 	window.close();
 }
 
