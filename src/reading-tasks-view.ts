@@ -53,11 +53,13 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	) as unknown as XUL.MenuList;
 	menuList.setAttribute("native", "true");
 	const popup = window.document.createXULElement("menupopup");
-	menuList.append(popup);
 	statusNames.forEach((name, index) => {
-		const label = `${statusIcons[index]} ${name}`;
-		menuList.appendItem(label, name);
+		const item = window.document.createXULElement("menuitem");
+		item.setAttribute("label", `${statusIcons[index]} ${name}`);
+		item.setAttribute("value", name);
+		popup.append(item);
 	});
+	menuList.append(popup);
 	menuList.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
 	statusCell.append(menuList as unknown as Node);
 
