@@ -208,29 +208,20 @@ function save(window: Window) {
 	const tasks: ReadingTask[] = [];
 	for (const row of rows) {
 		const cells = row.children;
+		const typeInput = cells[5].querySelector('input[type="radio"]:checked') as HTMLInputElement | null;
+		const statusInput = cells[6].querySelector('input[type="radio"]:checked') as HTMLInputElement | null;
+
 		tasks.push({
 			module: (cells[0].firstChild as HTMLInputElement).value.trim(),
 			unit: (cells[1].firstChild as HTMLInputElement).value.trim(),
-			chapter:
-				(cells[2].firstChild as HTMLInputElement).value.trim() ||
-				undefined,
-			pages:
-				(cells[3].firstChild as HTMLInputElement).value.trim() ||
-				undefined,
-			paragraph:
-				(cells[4].firstChild as HTMLInputElement).value.trim() ||
-				undefined,
-			type:
-				(cells[5].firstChild as HTMLInputElement).value.trim() ||
-				undefined,
-			status:
-				(
-					cells[6].querySelector(
-						'input[type="radio"]:checked',
-					) as HTMLInputElement
-				)?.value || statusNames[0],
+			chapter: (cells[2].firstChild as HTMLInputElement).value.trim() || undefined,
+			pages: (cells[3].firstChild as HTMLInputElement).value.trim() || undefined,
+			paragraph: (cells[4].firstChild as HTMLInputElement).value.trim() || undefined,
+			type: typeInput?.value || undefined,
+			status: statusInput?.value || statusNames[0],
 		});
 	}
+
 	setReadingTasks(item, tasks);
 	updateItemReadStatus(item, tasks, statusNames);
 	window.close();
