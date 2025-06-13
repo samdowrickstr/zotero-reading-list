@@ -135,6 +135,31 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	bin.addEventListener("click", () => row.remove());
 	removeCell.append(bin);
 
+	const moveCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	});
+	const upBtn = dialog.createElement(doc, "button", {
+		namespace: "html",
+		properties: { innerHTML: "⬆" },
+	});
+	upBtn.addEventListener("click", () => {
+		const prev = row.previousElementSibling;
+		if (prev) {
+			prev.before(row);
+		}
+	});
+	const downBtn = dialog.createElement(doc, "button", {
+		namespace: "html",
+		properties: { innerHTML: "⬇" },
+	});
+	downBtn.addEventListener("click", () => {
+		const next = row.nextElementSibling;
+		if (next) {
+			next.after(row);
+		}
+	});
+	moveCell.append(upBtn, downBtn);
+
 	row.append(
 		moduleCell,
 		unitCell,
@@ -145,6 +170,7 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		statusCell,
 		doneCell,
 		removeCell,
+		moveCell,
 	);
 	return row;
 }
@@ -327,6 +353,10 @@ async function open(item: Zotero.Item) {
 									{
 										tag: "th",
 										properties: { innerHTML: "Remove" },
+									},
+									{
+										tag: "th",
+										properties: { innerHTML: "Order" },
 									},
 								],
 							},
