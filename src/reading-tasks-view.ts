@@ -24,6 +24,26 @@ function createInput(dialog: DialogHelper, value?: string, listId?: string) {
 	});
 	if (listId) {
 		input.setAttribute("list", listId);
+		input.addEventListener("input", () => {
+			const list = dialog.window.document.getElementById(
+				listId,
+			) as HTMLDataListElement | null;
+			if (!list) {
+				return;
+			}
+			const val = input.value.toLowerCase();
+			const options = Array.from(list.options);
+			const matches = options.filter((o) =>
+				o.value.toLowerCase().startsWith(val),
+			);
+			if (matches.length === 1) {
+				const match = matches[0].value;
+				if (match.length > val.length) {
+					input.value = match;
+					input.setSelectionRange(val.length, match.length);
+				}
+			}
+		});
 	}
 	return input;
 }
