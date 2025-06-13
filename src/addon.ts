@@ -2,6 +2,7 @@ import { ColumnOptions, DialogHelper } from "zotero-plugin-toolkit";
 import hooks from "./hooks";
 import prefsMenu from "./prefs-menu";
 import readingTasksView from "./reading-tasks-view";
+import readingTasksDashboard from "./reading-tasks-dashboard";
 import { createZToolkit } from "./utils/ztoolkit";
 
 class Addon {
@@ -24,6 +25,7 @@ class Addon {
 	public hooks: typeof hooks;
 	public prefsMenu: typeof prefsMenu;
 	public readingTasksView: typeof readingTasksView;
+	public readingTasksDashboard: typeof readingTasksDashboard;
 	// APIs
 	public api: object;
 
@@ -36,6 +38,7 @@ class Addon {
 		this.hooks = hooks;
 		this.prefsMenu = prefsMenu;
 		this.readingTasksView = readingTasksView;
+		this.readingTasksDashboard = readingTasksDashboard;
 		this.api = {};
 	}
 }

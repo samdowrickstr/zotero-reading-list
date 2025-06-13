@@ -29,3 +29,5 @@ reading-task-type-additional = Additional
 manage-reading-tasks-menu = Manage Reading Tasks
 reading-tasks-pane-header = Reading Tasks
 reading-tasks-pane-sidenav = Reading Tasks
+reading-tasks-dashboard-title = Reading Tasks Dashboard
+filter-placeholder = Filter…

@@ -569,6 +569,12 @@ export default class ZoteroReadingList {
 					label: getString("manage-reading-tasks-menu"),
 					commandListener: () => openManageReadingTasks(),
 				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("reading-tasks-dashboard-title"),
+					commandListener: () =>
+						void addon.readingTasksDashboard.open(),
+				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
@@ -602,24 +608,28 @@ export default class ZoteroReadingList {
 				item: Zotero.Item;
 			}) => {
 				const tasks = getReadingTasks(item);
-				const textDiv = body.querySelector(
-					"#reading-tasks-pane-body",
-				) as HTMLDivElement | null;
+				const textDiv = body.querySelector("#reading-tasks-pane-body");
 				if (textDiv) {
 					textDiv.textContent = tasks.length
 						? tasksToString(tasks)
 						: getString("reading-tasks-none");
 				}
-				const addBtn = body.querySelector("#reading-tasks-pane-add") as HTMLButtonElement | null;
+				const addBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-add",
+				);
 				if (addBtn) {
 					addBtn.textContent = getString("add-reading-task-menu");
-					addBtn.onclick = () => promptAddReadingTask();           // ← one handler only
+					addBtn.onclick = () => promptAddReadingTask(); // ← one handler only
 				}
 
-				const manageBtn = body.querySelector("#reading-tasks-pane-manage") as HTMLButtonElement | null;
+				const manageBtn = body.querySelector<HTMLButtonElement>(
+					"#reading-tasks-pane-manage",
+				);
 				if (manageBtn) {
-					manageBtn.textContent = getString("manage-reading-tasks-menu");
-					manageBtn.onclick = () => addon.readingTasksView.open(item);   // ← one handler only
+					manageBtn.textContent = getString(
+						"manage-reading-tasks-menu",
+					);
+					manageBtn.onclick = () => addon.readingTasksView.open(item); // ← one handler only
 				}
 			},
 		});
