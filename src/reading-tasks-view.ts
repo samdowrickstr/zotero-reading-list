@@ -45,19 +45,18 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	paragraphCell.append(createInput(window, task.paragraph));
 
 	const statusCell = createElement(window, "html:td");
-	// use a regular HTML select so it works in the dynamically generated dialog
-	const select = createElement(window, "html:select") as HTMLSelectElement;
+	const menuList = window.document.createXULElement(
+		"menulist",
+	) as unknown as XUL.MenuList;
+	menuList.setAttribute("native", "true");
+	const popup = window.document.createXULElement("menupopup");
+	menuList.append(popup);
 	statusNames.forEach((name, index) => {
-		const option = createElement(
-			window,
-			"html:option",
-		) as HTMLOptionElement;
-		option.textContent = `${statusIcons[index]} ${name}`;
-		option.value = name;
-		select.append(option);
+		const label = `${statusIcons[index]} ${name}`;
+		menuList.appendItem(label, name);
 	});
-	select.value = task.status || statusNames[0];
-	statusCell.append(select);
+	menuList.selectedIndex = statusNames.indexOf(task.status || statusNames[0]);
+	statusCell.append(menuList as unknown as Node);
 
 	const doneCell = createElement(window, "html:td");
 	const check = createElement(window, "html:input") as HTMLInputElement;
@@ -133,8 +132,9 @@ function save(window: Window) {
 				undefined,
 
 			status:
-				(cells[5].firstChild as HTMLSelectElement).value ||
-				statusNames[0],
+				(
+					cells[5].firstChild as unknown as XUL.MenuList
+				).selectedItem?.getAttribute("value") || statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
 	}
