@@ -15,6 +15,7 @@ import { DialogHelper } from "zotero-plugin-toolkit";
 import { getString } from "./utils/locale";
 
 const TABLE_BODY = "reading-tasks-table-body";
+let rowsCounter = 0;
 
 function createInput(dialog: DialogHelper, value?: string) {
 	const input = dialog.createElement(dialog.window.document, "input", {
@@ -57,19 +58,35 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const statusCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	}) as HTMLTableCellElement;
-	const radiogroup = dialog.createElement(doc, "radiogroup", {
-		namespace: "xul",
-		attributes: { orient: "horizontal" },
-	}) as XULElement;
+	const group = dialog.createElement(doc, "div", {
+		namespace: "html",
+	}) as HTMLDivElement;
+	group.classList.add("status-group");
+	const rowIndex = rowsCounter++;
 	statusNames.forEach((name, index) => {
-		const radio = dialog.createElement(doc, "radio", {
-			namespace: "xul",
-			attributes: { value: name, label: `${statusIcons[index]} ${name}` },
-		}) as XULElement;
-		radiogroup.append(radio);
+		const label = dialog.createElement(doc, "label", {
+			namespace: "html",
+		}) as HTMLLabelElement;
+		label.style.marginRight = "8px";
+		const radio = dialog.createElement(doc, "input", {
+			namespace: "html",
+			attributes: {
+				type: "radio",
+				name: `status-${rowIndex}`,
+				value: name,
+			},
+		}) as HTMLInputElement;
+		if ((task.status || statusNames[0]) === name) {
+			radio.checked = true;
+		}
+		const text = dialog.createElement(doc, "span", {
+			namespace: "html",
+			properties: { innerHTML: `${statusIcons[index]} ${name}` },
+		}) as HTMLSpanElement;
+		label.append(radio, text);
+		group.append(label);
 	});
-	(radiogroup as any).value = task.status || statusNames[0];
-	statusCell.append(radiogroup);
+	statusCell.append(group);
 
 	const doneCell = dialog.createElement(doc, "td", {
 		namespace: "html",
@@ -153,7 +170,12 @@ function save(window: Window) {
 				(cells[4].firstChild as HTMLInputElement).value.trim() ||
 				undefined,
 
-			status: (cells[5].firstChild as any).value || statusNames[0],
+			status:
+				(
+					cells[5].querySelector(
+						'input[type="radio"]:checked',
+					) as HTMLInputElement
+				)?.value || statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
 	}
@@ -179,6 +201,7 @@ function onLoad(window: Window) {
 }
 
 function open(item: Zotero.Item) {
+	rowsCounter = 0;
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
 		tag: "vbox",
