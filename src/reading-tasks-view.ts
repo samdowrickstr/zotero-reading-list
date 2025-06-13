@@ -32,7 +32,7 @@ function createInput(dialog: DialogHelper, value?: string, listId?: string) {
 				return;
 			}
 			const val = input.value.toLowerCase();
-			const options = Array.from(list.options);
+			const options = Array.from(list.options) as HTMLOptionElement[];
 			const matches = options.filter((o) =>
 				o.value.toLowerCase().startsWith(val),
 			);

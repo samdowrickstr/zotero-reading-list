@@ -261,7 +261,7 @@ export default class ZoteroReadingList {
 	fileOpenedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
 	preferenceUpdateObservers?: symbol[];
-	readingTasksPaneID?: string | number;
+	readingTasksPaneID?: string | false;
 	statusNames: string[];
 	statusIcons: string[];
 
@@ -610,7 +610,7 @@ export default class ZoteroReadingList {
 	}
 
 	removeReadingTasksPane() {
-		if (this.readingTasksPaneID) {
+		if (typeof this.readingTasksPaneID === "string") {
 			Zotero.ItemPaneManager.unregisterSection(this.readingTasksPaneID);
 			this.readingTasksPaneID = undefined;
 		}
