@@ -79,19 +79,33 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			moduleTags.add(t.module);
 		}
 		if (t.type) {
-			typeTags.add(t.type);
+			// Convert required/additional types into longer tag names
+			if (/^Required$/i.test(t.type)) {
+				typeTags.add("Required Reading");
+			} else if (/^Additional$/i.test(t.type)) {
+				typeTags.add("Additional Reading");
+			} else {
+				typeTags.add(t.type);
+			}
 		}
 	}
+
 	const existing = item.getTags().map((t) => t.tag);
 	for (const tag of existing) {
 		if (/^Unit\s/.test(tag) && !unitTags.has(tag)) {
 			item.removeTag(tag);
 		} else if (/ULAW/.test(tag) && !moduleTags.has(tag)) {
 			item.removeTag(tag);
-		} else if (/^(Required|Additional)$/i.test(tag) && !typeTags.has(tag)) {
+		} else if (
+			/^(Required Reading|Additional Reading|Required|Additional)$/i.test(
+				tag,
+			) &&
+			!typeTags.has(tag)
+		) {
 			item.removeTag(tag);
 		}
 	}
+
 	for (const tag of unitTags) {
 		if (!existing.includes(tag)) {
 			item.addTag(tag);
@@ -107,5 +121,6 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			item.addTag(tag);
 		}
 	}
+
 	void item.saveTx();
 }
