@@ -34,6 +34,7 @@ export function setReadingTasks(item: Zotero.Item, tasks: ReadingTask[]): void {
 		JSON.stringify(tasks),
 	);
 	void item.saveTx();
+	updateItemTagsFromTasks(item);
 }
 
 export function addReadingTask(item: Zotero.Item, task: ReadingTask): void {
@@ -80,4 +81,37 @@ export function tasksToString(tasks: ReadingTask[]): string {
 			return `${idx + 1}. ${details} [${t.status}] - ${done}`;
 		})
 		.join("\n");
+}
+
+export function updateItemTagsFromTasks(item: Zotero.Item): void {
+	const tasks = getReadingTasks(item);
+	const unitTags = new Set<string>();
+	const moduleTags = new Set<string>();
+	for (const t of tasks) {
+		if (t.unit) {
+			unitTags.add(`Unit ${t.unit}`);
+		}
+		if (t.module && t.module.includes("ULAW")) {
+			moduleTags.add(t.module);
+		}
+	}
+	const existing = item.getTags().map((t: any) => t.tag);
+	for (const tag of existing) {
+		if (/^Unit\s/.test(tag) && !unitTags.has(tag)) {
+			item.removeTag(tag);
+		} else if (/ULAW/.test(tag) && !moduleTags.has(tag)) {
+			item.removeTag(tag);
+		}
+	}
+	for (const tag of unitTags) {
+		if (!existing.includes(tag)) {
+			item.addTag(tag);
+		}
+	}
+	for (const tag of moduleTags) {
+		if (!existing.includes(tag)) {
+			item.addTag(tag);
+		}
+	}
+	void item.saveTx();
 }

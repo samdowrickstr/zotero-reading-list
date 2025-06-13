@@ -17,11 +17,14 @@ import { getString } from "./utils/locale";
 const TABLE_BODY = "reading-tasks-table-body";
 let rowsCounter = 0;
 
-function createInput(dialog: DialogHelper, value?: string) {
+function createInput(dialog: DialogHelper, value?: string, listId?: string) {
 	const input = dialog.createElement(dialog.window.document, "input", {
 		namespace: "html",
 		properties: { type: "text", value: value || "" },
 	}) as HTMLInputElement;
+	if (listId) {
+		input.setAttribute("list", listId);
+	}
 	return input;
 }
 
@@ -37,11 +40,11 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const moduleCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	}) as HTMLTableCellElement;
-	moduleCell.append(createInput(dialog, task.module));
+	moduleCell.append(createInput(dialog, task.module, "module-tags"));
 	const unitCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	}) as HTMLTableCellElement;
-	unitCell.append(createInput(dialog, task.unit));
+	unitCell.append(createInput(dialog, task.unit, "unit-tags"));
 	const chapterCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	}) as HTMLTableCellElement;
@@ -202,6 +205,12 @@ function onLoad(window: Window) {
 
 function open(item: Zotero.Item) {
 	rowsCounter = 0;
+	const unitTags = Zotero.Tags.getAll()
+		.map((t: any) => t.name ?? t.tag)
+		.filter((n: string) => /^Unit\s/i.test(n));
+	const moduleTags = Zotero.Tags.getAll()
+		.map((t: any) => t.name ?? t.tag)
+		.filter((n: string) => /ULAW/.test(n));
 	const dialog = new DialogHelper(1, 1);
 	dialog.addCell(0, 0, {
 		tag: "vbox",
@@ -210,6 +219,24 @@ function open(item: Zotero.Item) {
 				tag: "h2",
 				namespace: "html",
 				properties: { innerHTML: getString("reading-tasks-title") },
+			},
+			{
+				tag: "datalist",
+				namespace: "html",
+				attributes: { id: "module-tags" },
+				children: moduleTags.map((m) => ({
+					tag: "option" as const,
+					attributes: { value: m },
+				})),
+			},
+			{
+				tag: "datalist",
+				namespace: "html",
+				attributes: { id: "unit-tags" },
+				children: unitTags.map((u) => ({
+					tag: "option" as const,
+					attributes: { value: u },
+				})),
 			},
 			{
 				tag: "table",

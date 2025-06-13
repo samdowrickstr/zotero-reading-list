@@ -19,6 +19,7 @@ import {
 	addReadingTask,
 	getReadingTasks,
 	tasksToString,
+	updateItemTagsFromTasks,
 } from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
@@ -106,6 +107,7 @@ export function updateItemStatusFromTasks(item: Zotero.Item) {
 		}
 	}
 	setItemReadStatus(item, statusNames[idx]);
+	updateItemTagsFromTasks(item);
 }
 
 /**
