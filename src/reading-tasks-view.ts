@@ -148,10 +148,13 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const removeCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	});
+	removeCell.style.textAlign = "center";
 	const bin = dialog.createElement(doc, "button", {
 		namespace: "html",
 		properties: { innerHTML: "🗑" },
 	});
+	bin.style.display = "block";
+	bin.style.margin = "0 auto";
 	bin.addEventListener("click", () => row.remove());
 	removeCell.append(bin);
 

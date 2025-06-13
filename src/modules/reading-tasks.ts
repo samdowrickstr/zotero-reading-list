@@ -98,10 +98,7 @@ export function updateItemTagsFromTasks(item: Zotero.Item): void {
 			item.removeTag(tag);
 		} else if (/ULAW/.test(tag) && !moduleTags.has(tag)) {
 			item.removeTag(tag);
-		} else if (
-			/^(Required Reading|Additional Reading)$/i.test(tag) &&
-			!typeTags.has(tag)
-		) {
+		} else if (/^(Required|Additional)$/i.test(tag) && !typeTags.has(tag)) {
 			item.removeTag(tag);
 		}
 	}
