@@ -17,11 +17,17 @@ import { getString } from "./utils/locale";
 const TABLE_BODY = "reading-tasks-table-body";
 let rowsCounter = 0;
 
-function createInput(dialog: DialogHelper, value?: string, listId?: string) {
+function createInput(
+	dialog: DialogHelper,
+	value?: string,
+	listId?: string,
+	long = false,
+) {
 	const input = dialog.createElement(dialog.window.document, "input", {
 		namespace: "html",
 		properties: { type: "text", value: value || "" },
 	});
+	input.setAttribute("size", long ? "20" : "10");
 	if (listId) {
 		input.setAttribute("list", listId);
 		input.addEventListener("input", () => {
@@ -60,7 +66,7 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const moduleCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	});
-	moduleCell.append(createInput(dialog, task.module, "module-tags"));
+	moduleCell.append(createInput(dialog, task.module, "module-tags", true));
 	const unitCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	});
@@ -149,31 +155,6 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	bin.addEventListener("click", () => row.remove());
 	removeCell.append(bin);
 
-	const moveCell = dialog.createElement(doc, "td", {
-		namespace: "html",
-	});
-	const upBtn = dialog.createElement(doc, "button", {
-		namespace: "html",
-		properties: { innerHTML: "⬆" },
-	});
-	upBtn.addEventListener("click", () => {
-		const prev = row.previousElementSibling;
-		if (prev) {
-			prev.before(row);
-		}
-	});
-	const downBtn = dialog.createElement(doc, "button", {
-		namespace: "html",
-		properties: { innerHTML: "⬇" },
-	});
-	downBtn.addEventListener("click", () => {
-		const next = row.nextElementSibling;
-		if (next) {
-			next.after(row);
-		}
-	});
-	moveCell.append(upBtn, downBtn);
-
 	row.append(
 		moduleCell,
 		unitCell,
@@ -183,7 +164,6 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 		typeCell,
 		statusCell,
 		removeCell,
-		moveCell,
 	);
 	return row;
 }
@@ -344,10 +324,6 @@ async function open(item: Zotero.Item) {
 									{
 										tag: "th",
 										properties: { innerHTML: "Remove" },
-									},
-									{
-										tag: "th",
-										properties: { innerHTML: "Order" },
 									},
 								],
 							},

@@ -66,7 +66,8 @@ export function updateTaskStatus(
 export function tasksToString(tasks: ReadingTask[]): string {
 	return tasks
 		.map((t, idx) => {
-			const details = [t.module, t.unit, t.chapter, t.pages, t.paragraph]
+			const unit = t.unit ? `Unit ${t.unit}` : undefined;
+			const details = [t.module, unit, t.chapter, t.pages, t.paragraph]
 				.filter(Boolean)
 				.join(" > ");
 			const type = t.type ? ` (${t.type})` : "";
