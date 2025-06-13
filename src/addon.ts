@@ -1,7 +1,7 @@
-import { ColumnOptions } from "zotero-plugin-toolkit/dist/helpers/virtualizedTable";
-import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
+import { ColumnOptions, DialogHelper } from "zotero-plugin-toolkit";
 import hooks from "./hooks";
 import prefsMenu from "./prefs-menu";
+import readingTasksView from "./reading-tasks-view";
 import { createZToolkit } from "./utils/ztoolkit";
 
 class Addon {
@@ -23,6 +23,7 @@ class Addon {
 	// Lifecycle hooks
 	public hooks: typeof hooks;
 	public prefsMenu: typeof prefsMenu;
+	public readingTasksView: typeof readingTasksView;
 	// APIs
 	public api: object;
 
@@ -34,6 +35,7 @@ class Addon {
 		};
 		this.hooks = hooks;
 		this.prefsMenu = prefsMenu;
+		this.readingTasksView = readingTasksView;
 		this.api = {};
 	}
 }

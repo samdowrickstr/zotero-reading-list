@@ -1,4 +1,4 @@
-import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
+import { MenuitemOptions } from "zotero-plugin-toolkit";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";
@@ -19,11 +19,12 @@ import {
 	addReadingTask,
 	getReadingTasks,
 	tasksToString,
+	updateItemTagsFromTasks,
 } from "./reading-tasks";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
-const READ_STATUS_EXTRA_FIELD = "Read_Status";
-const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
+export const READ_STATUS_EXTRA_FIELD = "Read_Status";
+export const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
 export const DEFAULT_STATUS_NAMES = [
 	"New",
@@ -61,7 +62,7 @@ function getItemReadStatus(item: Zotero.Item) {
 	return statusField.length == 1 ? statusField[0] : "";
 }
 
-function setItemReadStatus(item: Zotero.Item, statusName: string) {
+export function setItemReadStatus(item: Zotero.Item, statusName: string) {
 	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
 	setItemExtraProperty(
 		item,
@@ -90,6 +91,25 @@ function clearSelectedItemsReadStatus() {
 	}
 }
 
+export function updateItemStatusFromTasks(item: Zotero.Item) {
+	const tasks = getReadingTasks(item);
+	if (!tasks.length) {
+		return;
+	}
+	const [statusNames] = prefStringToList(
+		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+	);
+	let idx = 0;
+	for (const t of tasks) {
+		const sIdx = statusNames.indexOf(t.status);
+		if (sIdx > idx) {
+			idx = sIdx;
+		}
+	}
+	setItemReadStatus(item, statusNames[idx]);
+	updateItemTagsFromTasks(item);
+}
+
 /**
  * Return selected regular items
  */
@@ -113,12 +133,20 @@ function showReadingTasks() {
 	const message = lines.length
 		? lines.join("\n")
 		: getString("reading-tasks-none");
-  
+
 	Services.prompt.alert(
 		window as mozIDOMWindowProxy,
 		getString("reading-tasks-title"),
 		message,
 	);
+}
+
+function openManageReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	void addon.readingTasksView.open(items[0]);
 }
 
 function promptAddReadingTask() {
@@ -187,16 +215,33 @@ function promptAddReadingTask() {
 		{},
 	);
 
+	const typeInput = { value: getString("reading-task-type-required") };
+
+	promptSvc.prompt(
+		window as mozIDOMWindowProxy,
+		getString("add-reading-task-menu"),
+		getString("reading-task-prompt-type"),
+		typeInput,
+		null,
+		{},
+	);
+
 	const task = {
 		module: moduleInput.value.trim(),
 		unit: unitInput.value.trim(),
 		chapter: chapterInput.value.trim() || undefined,
 		pages: pagesInput.value.trim() || undefined,
 		paragraph: paragraphInput.value.trim() || undefined,
+		type: typeInput.value.trim() || undefined,
+		status:
+			prefStringToList(
+				getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+			)[0][1] || "To Read",
 	} as import("./reading-tasks").ReadingTask;
 
 	for (const item of items) {
 		addReadingTask(item, task);
+		updateItemStatusFromTasks(item);
 	}
 }
 
@@ -216,6 +261,7 @@ export default class ZoteroReadingList {
 	fileOpenedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
 	preferenceUpdateObservers?: symbol[];
+	readingTasksPaneID?: string | false;
 	statusNames: string[];
 	statusIcons: string[];
 
@@ -228,6 +274,7 @@ export default class ZoteroReadingList {
 		this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
+		this.addReadingTasksPane();
 
 		if (getPref(ENABLE_KEYBOARD_SHORTCUTS_PREF)) {
 			this.addKeyboardShortcutListener();
@@ -251,6 +298,7 @@ export default class ZoteroReadingList {
 		this.removeNewItemLabeller();
 		this.removeFileOpenedListener();
 		this.removePreferenceUpdateObservers();
+		this.removeReadingTasksPane();
 		this.unpatchExportFunction();
 	}
 
@@ -516,6 +564,11 @@ export default class ZoteroReadingList {
 					label: getString("add-reading-task-menu"),
 					commandListener: () => promptAddReadingTask(),
 				} as MenuitemOptions,
+				{
+					tag: "menuitem" as const,
+					label: getString("manage-reading-tasks-menu"),
+					commandListener: () => openManageReadingTasks(),
+				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {
 				return getSelectedItems().length > 0;
@@ -525,6 +578,58 @@ export default class ZoteroReadingList {
 
 	removeRightClickMenu() {
 		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
+	}
+
+	addReadingTasksPane() {
+		this.readingTasksPaneID = Zotero.ItemPaneManager.registerSection({
+			paneID: "zotero-reading-tasks-pane",
+			pluginID: config.addonID,
+			header: {
+				l10nID: "reading-tasks-title",
+				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+			},
+			sidenav: {
+				l10nID: "reading-tasks-title",
+				icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+			},
+			bodyXHTML:
+				'<div xmlns="http://www.w3.org/1999/xhtml"><div id="reading-tasks-pane-body" style="white-space: pre-wrap;"></div><div style="margin-top:4px;"><button id="reading-tasks-pane-add"></button><button id="reading-tasks-pane-manage" style="margin-left:4px;"></button></div></div>',
+			onRender: ({
+				body,
+				item,
+			}: {
+				body: HTMLElement;
+				item: Zotero.Item;
+			}) => {
+				const tasks = getReadingTasks(item);
+				const textDiv = body.querySelector(
+					"#reading-tasks-pane-body",
+				) as HTMLDivElement | null;
+				if (textDiv) {
+					textDiv.textContent = tasks.length
+						? tasksToString(tasks)
+						: getString("reading-tasks-none");
+				}
+				const addBtn = body.querySelector("#reading-tasks-pane-add") as HTMLButtonElement | null;
+				if (addBtn) {
+					addBtn.textContent = getString("add-reading-task-menu");
+					addBtn.onclick = () => promptAddReadingTask();           // ← one handler only
+				}
+
+				const manageBtn = body.querySelector("#reading-tasks-pane-manage") as HTMLButtonElement | null;
+				if (manageBtn) {
+					manageBtn.textContent = getString("manage-reading-tasks-menu");
+					manageBtn.onclick = () => addon.readingTasksView.open(item);   // ← one handler only
+				}
+			},
+		});
+	}
+
+	removeReadingTasksPane() {
+		if (typeof this.readingTasksPaneID === "string") {
+			Zotero.ItemPaneManager.unregisterSection(this.readingTasksPaneID);
+			this.readingTasksPaneID = undefined;
+		}
 	}
 
 	addNewItemLabeller() {
