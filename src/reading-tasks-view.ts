@@ -222,10 +222,10 @@ function open(item: Zotero.Item) {
 		l10nFiles: "__addonRef__-addon.ftl",
 	});
 	addon.data.dialog = dialog;
-	dialog.open(getString("manage-reading-tasks-menu"), {
-		width: 700,
-		height: 400,
-	});
+        dialog.open(getString("manage-reading-tasks-menu"), {
+                width: 900,
+                height: 600,
+        });
 }
 
 export default { open };
