@@ -1,6 +1,17 @@
 export const READING_LIST_NOTE_MARKER = "ReadingListTasks";
 const TITLE_SEP = ":";
 
+function getItemTitle(item: Zotero.Item): string {
+	const fields = ["title", "caseName", "nameOfAct", "shortTitle"];
+	for (const field of fields) {
+		const val = item.getField(field as any);
+		if (val) {
+			return val;
+		}
+	}
+	return "";
+}
+
 function encodeContent(title: string, tasks: string): string {
 	return `${READING_LIST_NOTE_MARKER}${TITLE_SEP}${title}\n${tasks}`;
 }
@@ -54,7 +65,7 @@ export function getOrCreateReadingTasksNote(item: Zotero.Item): Zotero.Item {
 	note.parentID = item.id;
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	(note as any).hidden = true;
-	const title = item.getField("title") || "";
+	const title = getItemTitle(item);
 	note.setNote(encodeContent(title, "[]"));
 	void note.saveTx();
 	return note;
@@ -67,7 +78,7 @@ export function getTasksFromNote(item: Zotero.Item): string | null {
 	}
 	const { title, tasks } = decodeContent(note.getNote());
 	if (!title) {
-		const itemTitle = item.getField("title");
+		const itemTitle = getItemTitle(item);
 		if (itemTitle) {
 			note.setNote(encodeContent(itemTitle, tasks));
 			void note.saveTx();
@@ -83,7 +94,7 @@ export function getTitleFromNote(item: Zotero.Item): string | null {
 	}
 	const { title, tasks } = decodeContent(note.getNote());
 	if (!title) {
-		const itemTitle = item.getField("title");
+		const itemTitle = getItemTitle(item);
 		if (itemTitle) {
 			note.setNote(encodeContent(itemTitle, tasks));
 			void note.saveTx();
@@ -95,7 +106,7 @@ export function getTitleFromNote(item: Zotero.Item): string | null {
 
 export function saveTasksToNote(item: Zotero.Item, tasks: string): void {
 	const note = getOrCreateReadingTasksNote(item);
-	const title = item.getField("title") || getTitleFromNote(item) || "";
+	const title = getItemTitle(item) || getTitleFromNote(item) || "";
 	note.setNote(encodeContent(title, tasks));
 	void note.saveTx();
 }
