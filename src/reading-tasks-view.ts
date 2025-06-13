@@ -57,22 +57,19 @@ function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
 	const statusCell = dialog.createElement(doc, "td", {
 		namespace: "html",
 	}) as HTMLTableCellElement;
-	const menulist = dialog.createElement(doc, "menulist", {
+	const radiogroup = dialog.createElement(doc, "radiogroup", {
 		namespace: "xul",
-	}) as XULMenuListElement;
-	const menupopup = dialog.createElement(doc, "menupopup", {
-		namespace: "xul",
-	}) as XULPopupElement;
+		attributes: { orient: "horizontal" },
+	}) as XULElement;
 	statusNames.forEach((name, index) => {
-		const menuitem = dialog.createElement(doc, "menuitem", {
+		const radio = dialog.createElement(doc, "radio", {
 			namespace: "xul",
 			attributes: { value: name, label: `${statusIcons[index]} ${name}` },
 		}) as XULElement;
-		menupopup.append(menuitem);
+		radiogroup.append(radio);
 	});
-	menulist.append(menupopup);
-	menulist.setAttribute("value", task.status || statusNames[0]);
-	statusCell.append(menulist);
+	(radiogroup as any).value = task.status || statusNames[0];
+	statusCell.append(radiogroup);
 
 	const doneCell = dialog.createElement(doc, "td", {
 		namespace: "html",
@@ -156,9 +153,7 @@ function save(window: Window) {
 				(cells[4].firstChild as HTMLInputElement).value.trim() ||
 				undefined,
 
-			status:
-				(cells[5].firstChild as XULMenuListElement).value ||
-				statusNames[0],
+			status: (cells[5].firstChild as any).value || statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
 	}
