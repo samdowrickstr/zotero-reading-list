@@ -16,58 +16,81 @@ import { getString } from "./utils/locale";
 
 const TABLE_BODY = "reading-tasks-table-body";
 
-function createElement(window: Window, tag: string) {
-	if (tag.startsWith("html:")) {
-		tag = tag.substring(5);
-	}
-	return window.document.createElementNS("http://www.w3.org/1999/xhtml", tag);
-}
-
-function createInput(window: Window, value?: string) {
-	const input = createElement(window, "input") as HTMLInputElement;
-	input.type = "text";
-	input.value = value || "";
+function createInput(dialog: DialogHelper, value?: string) {
+	const input = dialog.createElement(dialog.window.document, "input", {
+		namespace: "html",
+		properties: { type: "text", value: value || "" },
+	}) as HTMLInputElement;
 	return input;
 }
 
-function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
-	const row = createElement(window, "tr");
+function createTableRow(dialog: DialogHelper, task: Partial<ReadingTask> = {}) {
+	const doc = dialog.window.document;
+	const row = dialog.createElement(doc, "tr", {
+		namespace: "html",
+	}) as HTMLTableRowElement;
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
 
-	const moduleCell = createElement(window, "td");
-	moduleCell.append(createInput(window, task.module));
-	const unitCell = createElement(window, "td");
-	unitCell.append(createInput(window, task.unit));
-	const chapterCell = createElement(window, "td");
-	chapterCell.append(createInput(window, task.chapter));
-	const pagesCell = createElement(window, "td");
-	pagesCell.append(createInput(window, task.pages));
-	const paragraphCell = createElement(window, "td");
-	paragraphCell.append(createInput(window, task.paragraph));
+	const moduleCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	moduleCell.append(createInput(dialog, task.module));
+	const unitCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	unitCell.append(createInput(dialog, task.unit));
+	const chapterCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	chapterCell.append(createInput(dialog, task.chapter));
+	const pagesCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	pagesCell.append(createInput(dialog, task.pages));
+	const paragraphCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	paragraphCell.append(createInput(dialog, task.paragraph));
 
-	const statusCell = createElement(window, "td");
-	const select = createElement(window, "select") as HTMLSelectElement;
+	const statusCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	const menulist = dialog.createElement(doc, "menulist", {
+		namespace: "xul",
+	}) as XULMenuListElement;
+	const menupopup = dialog.createElement(doc, "menupopup", {
+		namespace: "xul",
+	}) as XULPopupElement;
 	statusNames.forEach((name, index) => {
-		const option = createElement(window, "option") as HTMLOptionElement;
-		option.value = name;
-		option.textContent = `${statusIcons[index]} ${name}`;
-		select.append(option);
+		const menuitem = dialog.createElement(doc, "menuitem", {
+			namespace: "xul",
+			attributes: { value: name, label: `${statusIcons[index]} ${name}` },
+		}) as XULElement;
+		menupopup.append(menuitem);
 	});
-	select.value = task.status || statusNames[0];
-	statusCell.append(select);
+	menulist.append(menupopup);
+	menulist.setAttribute("value", task.status || statusNames[0]);
+	statusCell.append(menulist);
 
-	const doneCell = createElement(window, "td");
-	const check = createElement(window, "input") as HTMLInputElement;
-	check.type = "checkbox";
-	check.checked = !!task.done;
+	const doneCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	const check = dialog.createElement(doc, "input", {
+		namespace: "html",
+		properties: { type: "checkbox", checked: !!task.done },
+	}) as HTMLInputElement;
 	doneCell.append(check);
 
-	const removeCell = createElement(window, "td");
-	const bin = createElement(window, "button");
-	bin.textContent = "🗑";
-	bin.onclick = () => row.remove();
+	const removeCell = dialog.createElement(doc, "td", {
+		namespace: "html",
+	}) as HTMLTableCellElement;
+	const bin = dialog.createElement(doc, "button", {
+		namespace: "html",
+		properties: { innerHTML: "🗑" },
+	}) as HTMLButtonElement;
+	bin.addEventListener("click", () => row.remove());
 	removeCell.append(bin);
 
 	row.append(
@@ -83,8 +106,10 @@ function createTableRow(window: Window, task: Partial<ReadingTask> = {}) {
 	return row;
 }
 
-function addTableRow(window: Window) {
-	window.document.getElementById(TABLE_BODY)?.append(createTableRow(window));
+function addTableRow(dialog: DialogHelper) {
+	dialog.window.document
+		.getElementById(TABLE_BODY)
+		?.append(createTableRow(dialog));
 }
 
 function updateItemReadStatus(
@@ -132,7 +157,7 @@ function save(window: Window) {
 				undefined,
 
 			status:
-				(cells[5].firstChild as HTMLSelectElement).value ||
+				(cells[5].firstChild as XULMenuListElement).value ||
 				statusNames[0],
 			done: (cells[6].firstChild as HTMLInputElement).checked,
 		});
@@ -154,7 +179,7 @@ function onLoad(window: Window) {
 	for (const task of tasks) {
 		window.document
 			.getElementById(TABLE_BODY)
-			?.append(createTableRow(window, task));
+			?.append(createTableRow(addon.data.dialog!, task));
 	}
 }
 
@@ -221,7 +246,7 @@ function open(item: Zotero.Item) {
 	});
 	dialog.addButton(getString("add-reading-task-menu"), "add", {
 		noClose: true,
-		callback: () => addTableRow(dialog.window),
+		callback: () => addTableRow(dialog),
 	});
 	dialog.addButton("Save", "save", { callback: () => save(dialog.window) });
 	dialog.setDialogData({
