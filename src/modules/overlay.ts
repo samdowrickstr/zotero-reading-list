@@ -149,6 +149,14 @@ function openManageReadingTasks() {
 	void addon.readingTasksView.open(items[0]);
 }
 
+function openImportReadingTasks() {
+	const items = getSelectedItems();
+	if (!items.length) {
+		return;
+	}
+	void addon.readingTasksImport.open(items[0]);
+}
+
 function promptAddReadingTask() {
 	const items = getSelectedItems();
 	if (!items.length) {
@@ -578,7 +586,7 @@ export default class ZoteroReadingList {
 				{
 					tag: "menuitem" as const,
 					label: getString("import-reading-tasks-menu"),
-					commandListener: () => void addon.readingTasksImport.open(),
+					commandListener: () => openImportReadingTasks(),
 				} as MenuitemOptions,
 			] as MenuitemOptions[],
 			getVisibility: (element, event) => {

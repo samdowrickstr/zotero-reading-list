@@ -10,11 +10,39 @@ export interface ReadingTask {
 
 import { getTasksFromNote, saveTasksToNote } from "../utils/noteHelpers";
 
+export function sortTasks(tasks: ReadingTask[]): ReadingTask[] {
+	return tasks.slice().sort((a, b) => {
+		const mod = (a.module || "").localeCompare(b.module || "", undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		if (mod !== 0) {
+			return mod;
+		}
+		const unit = (a.unit || "").localeCompare(b.unit || "", undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		if (unit !== 0) {
+			return unit;
+		}
+		const typeWeight = (t: string | undefined) => {
+			if (!t) return 0;
+			const lower = t.toLowerCase();
+			if (lower === "required" || lower === "core") return 0;
+			if (lower === "additional") return 1;
+			return 2;
+		};
+		return typeWeight(a.type) - typeWeight(b.type);
+	});
+}
+
 export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 	const content = getTasksFromNote(item);
 	if (content) {
 		try {
-			return JSON.parse(content) as ReadingTask[];
+			const tasks = JSON.parse(content) as ReadingTask[];
+			return sortTasks(tasks);
 		} catch {
 			return [];
 		}
@@ -23,7 +51,8 @@ export function getReadingTasks(item: Zotero.Item): ReadingTask[] {
 }
 
 export function setReadingTasks(item: Zotero.Item, tasks: ReadingTask[]): void {
-	saveTasksToNote(item, JSON.stringify(tasks));
+	const sorted = sortTasks(tasks);
+	saveTasksToNote(item, JSON.stringify(sorted));
 	updateItemTagsFromTasks(item);
 }
 
