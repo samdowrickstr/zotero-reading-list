@@ -11,6 +11,8 @@ import {
 	READ_DATE_EXTRA_FIELD,
 } from "./modules/overlay";
 import { setItemExtraProperty } from "./utils/extraField";
+import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
+import { getString } from "./utils/locale";
 
 const TABLE_BODY = "reading-tasks-table-body";
 
@@ -150,4 +152,80 @@ function onLoad(window: Window) {
 	}
 }
 
-export default { onLoad, addTableRow, save };
+function open(item: Zotero.Item) {
+	const dialog = new DialogHelper(1, 1);
+	dialog.addCell(0, 0, {
+		tag: "vbox",
+		children: [
+			{
+				tag: "html:h2",
+				properties: { innerHTML: getString("reading-tasks-title") },
+			},
+			{
+				tag: "html:table",
+				children: [
+					{
+						tag: "html:thead",
+						children: [
+							{
+								tag: "html:tr",
+								children: [
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Module" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Unit" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Chapter" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Pages" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Paragraph" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Status" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Done" },
+									},
+									{
+										tag: "html:th",
+										properties: { innerHTML: "Remove" },
+									},
+								],
+							},
+						],
+					},
+					{ tag: "html:tbody", attributes: { id: TABLE_BODY } },
+				],
+			},
+		],
+	});
+	dialog.addButton(getString("add-reading-task-menu"), "add", {
+		noClose: true,
+		callback: () => addTableRow(dialog.window),
+	});
+	dialog.addButton("Save", "save", { callback: () => save(dialog.window) });
+	dialog.setDialogData({
+		itemID: item.id,
+		loadCallback: () => onLoad(dialog.window),
+		l10nFiles: "__addonRef__-addon.ftl",
+	});
+	addon.data.dialog = dialog;
+	dialog.open(getString("manage-reading-tasks-menu"), {
+		width: 700,
+		height: 400,
+	});
+}
+
+export default { open };

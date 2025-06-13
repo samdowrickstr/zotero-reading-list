@@ -144,12 +144,7 @@ function openManageReadingTasks() {
 	if (!items.length) {
 		return;
 	}
-	window.openDialog(
-		rootURI + "chrome/content/reading-tasks.xhtml",
-		"readingTasks",
-		"chrome,modal,resizable",
-		{ itemID: items[0].id },
-	);
+	addon.readingTasksView.open(items[0]);
 }
 
 function promptAddReadingTask() {
