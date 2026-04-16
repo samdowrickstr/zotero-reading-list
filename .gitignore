@@ -8,3 +8,4 @@ yarn.lock
 debug.log
 .env
 .scaffold
+/build
